@@ -1,4 +1,4 @@
-package com.portfolio.backend;
+package com.hsbc.fortune.portfolio;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
