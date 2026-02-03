@@ -9,7 +9,7 @@ Fortune Pro is a comprehensive multi-asset portfolio management platform designe
 
 ---
 
-## Core Featuresr
+## Core Features
 
 ### 1. Dashboard & Overview
 - **Real-time Dashboard**
