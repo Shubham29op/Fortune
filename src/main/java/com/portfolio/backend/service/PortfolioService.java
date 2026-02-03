@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Service
@@ -64,8 +65,11 @@ public class PortfolioService {
         ClientHolding holding = new ClientHolding();
         holding.setClient(client);
         holding.setAsset(asset);
-        holding.setQuantity(request.getQuantity());
-        holding.setAvgBuyPrice(request.getPrice());
+
+        // FIX #1: int → BigDecimal
+        holding.setQuantity(BigDecimal.valueOf(request.getQuantity()));
+
+
         holding.setBuyDate(LocalDate.now());
 
         return holdingRepository.save(holding);
