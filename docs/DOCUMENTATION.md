@@ -1,4 +1,4 @@
-# HSBC Fortune - Portfolio Management System Documentation
+# Fortune Pro - Portfolio Management System Documentation
 
 ## Table of Contents
 1. [System Overview](#system-overview)
