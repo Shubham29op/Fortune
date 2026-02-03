@@ -89,7 +89,7 @@ Fortune Pro is a comprehensive multi-asset portfolio management platform designe
 
 ---
 
-### 4. Risk Management & Analytics ⭐ **SHARPE RATIO FOCUS**
+### 4. Risk Management & Analytics  **SHARPE RATIO FOCUS**
 
 #### **Sharpe Ratio Calculation**
 - **Formula**: Sharpe Ratio = (Portfolio Return - Risk-Free Rate) / Portfolio Volatility
@@ -275,12 +275,12 @@ Fortune Pro is a comprehensive multi-asset portfolio management platform designe
 
 ---
 
-## 📈 Key Metrics & KPIs
+##  Key Metrics & KPIs
 
 1. **Total Assets Under Management (AUM)**
 2. **Active Clients Count**
 3. **Average Portfolio Returns**
-4. **Average Sharpe Ratio** ⭐
+4. **Average Sharpe Ratio** 
 5. **Daily Transaction Volume**
 6. **Asset Allocation Percentages**
 7. **Portfolio Performance Rankings**
@@ -288,7 +288,7 @@ Fortune Pro is a comprehensive multi-asset portfolio management platform designe
 
 ---
 
-## 🎨 Asset Categories Supported
+##  Asset Categories Supported
 
 1. **Equity** - Stocks and equity instruments
 2. **Debt** - Bonds and fixed-income securities
@@ -300,7 +300,7 @@ Fortune Pro is a comprehensive multi-asset portfolio management platform designe
 
 ---
 
-## 🔐 Security & Compliance
+##  Security & Compliance
 
 - **Data Privacy**
   - GDPR-compliant customer deletion
@@ -314,7 +314,7 @@ Fortune Pro is a comprehensive multi-asset portfolio management platform designe
 
 ---
 
-## 📱 Browser Compatibility
+## Browser Compatibility
 
 - Chrome (latest)
 - Firefox (latest)
@@ -338,7 +338,7 @@ Fortune Pro is a comprehensive multi-asset portfolio management platform designe
 
 ---
 
-## 📞 Support & Documentation
+##  Support & Documentation
 
 - **API Documentation**: Available via Swagger UI
 - **Code Documentation**: Inline code comments
@@ -347,7 +347,7 @@ Fortune Pro is a comprehensive multi-asset portfolio management platform designe
 
 ---
 
-## ✨ Highlights
+##  Highlights
 
 - **Sharpe Ratio Focus**: Comprehensive risk-adjusted return analysis using Sharpe Ratio as the primary risk management metric
 - **Multi-Asset Support**: Manage portfolios across 7 different asset categories
