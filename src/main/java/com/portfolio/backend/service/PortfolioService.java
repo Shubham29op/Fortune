@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 
 @Service
-public class PortfolioService {
+public class PortfolioService implements PortfolioServiceInterface {
 
     @Autowired
     private ClientHoldingRepository holdingRepository;

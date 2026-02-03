@@ -3,7 +3,7 @@ package com.portfolio.backend.controller;
 import com.portfolio.backend.dto.BuyAssetRequest;
 import com.portfolio.backend.entity.ClientHolding;
 import com.portfolio.backend.repository.ClientHoldingRepository; // Import this
-import com.portfolio.backend.service.PortfolioService;
+import com.portfolio.backend.service.PortfolioServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +16,7 @@ import java.util.List;
 public class PortfolioController {
 
     @Autowired
-    private PortfolioService portfolioService;
+    private PortfolioServiceInterface portfolioService;
     
     @Autowired
     private ClientHoldingRepository holdingRepository; // Direct access for reading

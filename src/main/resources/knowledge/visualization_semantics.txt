@@ -1,0 +1,99 @@
+VISUALIZATION SEMANTICS & INTERPRETATION GUIDE
+
+CHART TYPES & THEIR MEANINGS:
+
+LINE CHARTS:
+- Purpose: Show trends over time
+- Common Uses: Portfolio value, performance trends, price movements
+- X-Axis: Typically time (dates, months, quarters)
+- Y-Axis: Metric being tracked (value, percentage, price)
+- Interpretation:
+  * Upward slope: Positive trend, growth, gains
+  * Downward slope: Negative trend, decline, losses
+  * Flat line: Stable, no significant change
+  * Sharp spikes: Volatility events, sudden changes
+  * Gradual curves: Steady growth or decline
+- Key Patterns:
+  * Bullish trend: Consistent upward movement
+  * Bearish trend: Consistent downward movement
+  * Volatility: Frequent up/down movements
+  * Consolidation: Sideways movement, range-bound
+
+DOUGHNUT / PIE CHARTS:
+- Purpose: Show allocation percentages, composition
+- Common Uses: Asset allocation, category distribution, sector breakdown
+- Interpretation:
+  * Large segments: High concentration in that category
+  * Small segments: Low exposure
+  * Balanced chart: Even distribution across categories
+  * Skewed chart: Concentration in one or few categories
+- Risk Indicators:
+  * Single segment > 50%: Concentration risk
+  * Multiple small segments: Over-diversification
+  * Balanced segments: Good diversification
+- Color Coding:
+  * Typically: Different colors for different categories
+  * Hover: Shows exact percentage and value
+
+BAR CHARTS:
+- Purpose: Compare values across categories
+- Common Uses: Performance comparison, exposure comparison, category analysis
+- X-Axis: Categories or assets
+- Y-Axis: Values being compared
+- Interpretation:
+  * Taller bars: Higher values, greater exposure
+  * Shorter bars: Lower values, less exposure
+  * Similar heights: Balanced distribution
+  * One very tall bar: Outlier, concentration
+- Comparison Use:
+  * Compare across clients
+  * Compare across time periods
+  * Compare across categories
+
+SCATTER PLOTS:
+- Purpose: Show correlation between two metrics
+- Common Uses: Risk vs. return analysis, correlation analysis
+- X-Axis: One metric (e.g., risk, volatility)
+- Y-Axis: Another metric (e.g., return, performance)
+- Interpretation:
+  * Clustered points: Similar risk/return profiles
+  * Upward trend: Positive correlation
+  * Downward trend: Negative correlation
+  * Outliers: Assets with unusual characteristics
+
+VISUALIZATION CONTEXT CLUES:
+
+TIME RANGES:
+- 1D (Daily): Short-term movements, intraday volatility
+- 1W (Weekly): Short-term trends, weekly patterns
+- 1M (Monthly): Medium-term trends, monthly performance
+- 3M (Quarterly): Medium-term analysis, quarterly review
+- 1Y (Yearly): Long-term trends, annual performance
+- All Time: Historical perspective, long-term patterns
+
+METRICS TO LOOK FOR:
+- Total Value: Overall portfolio worth
+- Percentage Change: Relative performance
+- Absolute Change: Dollar amount change
+- Beta: Volatility measure
+- VaR: Risk measure
+
+ANOMALY DETECTION:
+- Sudden spikes: Market events, news impact
+- Sharp drops: Market corrections, bad news
+- Flat periods: Low activity, consolidation
+- Consistent trends: Strong directional movement
+- Erratic patterns: High volatility, uncertainty
+
+VISUALIZATION BEST PRACTICES:
+- Always check time range context
+- Compare with benchmarks when available
+- Look for patterns, not just individual points
+- Consider multiple timeframes for full picture
+- Hover over data points for exact values
+
+COMMON QUESTIONS TO ANSWER:
+- "What does this chart show?" → Describe chart type, axes, data
+- "Why is this trend happening?" → Analyze patterns, context
+- "Is this normal?" → Compare with historical patterns
+- "What should I do?" → Provide analytical insights (not advice)

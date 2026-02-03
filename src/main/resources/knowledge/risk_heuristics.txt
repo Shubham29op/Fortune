@@ -1,0 +1,64 @@
+RISK ASSESSMENT HEURISTICS & GUIDELINES
+
+PORTFOLIO BETA INTERPRETATION:
+- Beta < 0.8: CONSERVATIVE portfolio
+  * Lower volatility, more stable returns
+  * Suitable for risk-averse investors
+  * May underperform in bull markets
+  
+- Beta 0.8 - 1.2: MODERATE portfolio
+  * Balanced risk-return profile
+  * Moves roughly with market average
+  * Suitable for most investors
+  
+- Beta > 1.2: AGGRESSIVE portfolio
+  * Higher volatility, potential for higher returns
+  * More sensitive to market movements
+  * Suitable for risk-tolerant investors
+
+CATEGORY-SPECIFIC RISK WEIGHTS:
+- COMMODITY: Weight 1.5 (highest volatility)
+  * Gold, silver, oil are highly volatile
+  * Commodity exposure > 30% increases portfolio risk significantly
+  * Subject to supply/demand and geopolitical factors
+  
+- NSE (Equity): Weight 1.0 (market average)
+  * Stock prices fluctuate with market sentiment
+  * Individual stock risk can be high
+  * Diversification across sectors reduces risk
+  
+- MF (Mutual Fund): Weight 0.7 (lower volatility)
+  * Professionally managed, diversified by default
+  * Lower volatility than individual stocks
+  * Still subject to market risk
+
+CONCENTRATION RISK THRESHOLDS:
+- Single Asset > 20% of portfolio: HIGH concentration risk
+- Single Category > 50% of portfolio: MODERATE concentration risk
+- Single Sector > 40% of portfolio: MODERATE concentration risk
+- Commodity > 30% of portfolio: HIGH volatility risk
+
+VALUE AT RISK (VaR) INTERPRETATION:
+- VaR at 95% confidence: 5% probability of loss exceeding calculated amount
+- Example: VaR of $5,000 means 5% chance of losing more than $5,000 in one day
+- Higher VaR = Higher risk
+- VaR should be calculated using portfolio beta and total value
+
+PERFORMANCE WARNING SIGNALS:
+- Unrealized loss > 10%: Review positions, consider stop-loss
+- Unrealized loss > 20%: Significant concern, may need rebalancing
+- High volatility in unrealized P&L: Portfolio may be too aggressive
+- Consistent underperformance vs. benchmark: Review asset selection
+
+REBALANCING TRIGGERS:
+- Category allocation drifts > 10% from target
+- Single asset exceeds 20% of portfolio
+- Portfolio beta shifts significantly (>0.2 change)
+- Risk tolerance changes
+
+RISK MITIGATION STRATEGIES:
+- Diversification: Spread investments across categories
+- Regular rebalancing: Maintain target allocation
+- Stop-loss orders: Limit downside risk
+- Dollar-cost averaging: Reduce timing risk
+- Asset allocation: Match risk tolerance
