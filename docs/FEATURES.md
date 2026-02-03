@@ -1,4 +1,4 @@
-# AssetVault - Portfolio Management Platform
+# Fortune Pro - Portfolio Management Platform
 ## Comprehensive Feature List
 
 ---
@@ -9,7 +9,7 @@ Fortune Pro is a comprehensive multi-asset portfolio management platform designe
 
 ---
 
-## Core Features
+## Core Featuresr
 
 ### 1. Dashboard & Overview
 - **Real-time Dashboard**
