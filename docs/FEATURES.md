@@ -5,7 +5,7 @@
 
 ## Executive Summary
 
-AssetVault is a comprehensive multi-asset portfolio management platform designed for financial institutions to manage client portfolios across various asset classes including Equity, Debt, Gold, Real Estate, Crypto, and Mutual Funds. The platform provides real-time analytics, risk management, and comprehensive reporting capabilities.
+Fortune Pro is a comprehensive multi-asset portfolio management platform designed for financial institutions to manage client portfolios across various asset classes including Equity, Debt, Gold, Real Estate, Crypto, and Mutual Funds. The platform provides real-time analytics, risk management, and comprehensive reporting capabilities.
 
 ---
 
