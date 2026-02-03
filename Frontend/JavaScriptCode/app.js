@@ -144,61 +144,104 @@ function updateRealizedKPI() {
 
 // --- RISK ANALYSIS ENGINE (Preserved & Merged) ---
 function calculateRiskProfile() {
-    // Weights: COMMODITY (1.5), NSE (1.0), MF (0.7)
+    // Standard Beta Weights
     const weights = { 'COMMODITY': 1.5, 'NSE': 1.0, 'MF': 0.7 };
     
     let totalValue = 0;
     let weightedBetaSum = 0;
     let categoryExposure = { 'COMMODITY': 0, 'NSE': 0, 'MF': 0 };
+    
+    // Risk Contribution Table Data
+    let riskContributors = [];
 
     currentHoldings.forEach(h => {
         const val = h.mktValue;
         const cat = h.asset.category;
+        const assetBeta = weights[cat] || 1.0;
+        
         totalValue += val;
         categoryExposure[cat] = (categoryExposure[cat] || 0) + val;
-        const assetBeta = weights[cat] || 1.0;
         weightedBetaSum += (val * assetBeta);
+
+        riskContributors.push({
+            symbol: h.asset.symbol,
+            val: val,
+            beta: assetBeta,
+            contrib: val * assetBeta
+        });
     });
 
     if (totalValue === 0) {
-        document.getElementById('riskContent').innerHTML = '<div class="panel"><p>No assets to analyze.</p></div>';
+        document.getElementById('riskContent').innerHTML = '<div class="panel"><p style="color:#aaa">No assets found for this client. Please add holdings to calculate risk.</p></div>';
         return;
     }
 
     const portfolioBeta = weightedBetaSum / totalValue;
     
+    // Determine Risk Label
     let riskLabel = "MODERATE";
-    let riskColor = "#f59e0b"; 
-    if(portfolioBeta < 0.8) { riskLabel = "CONSERVATIVE"; riskColor = "#10b981"; } 
-    if(portfolioBeta > 1.2) { riskLabel = "AGGRESSIVE"; riskColor = "#ef4444"; }
+    let riskColor = "#f59e0b"; // Orange
+    if(portfolioBeta < 0.8) { riskLabel = "CONSERVATIVE"; riskColor = "#10b981"; } // Green
+    if(portfolioBeta > 1.2) { riskLabel = "AGGRESSIVE"; riskColor = "#ef4444"; }   // Red
+
+    // Sort contributors by risk impact
+    riskContributors.sort((a, b) => b.contrib - a.contrib);
+
+    // Generate Risk Contribution Rows
+    const contribRows = riskContributors.slice(0, 3).map(r => `
+        <tr>
+            <td style="color:var(--text-main)">${r.symbol}</td>
+            <td style="text-align:right">$${r.val.toLocaleString()}</td>
+            <td style="text-align:right; color:${r.beta > 1 ? '#ef4444' : '#10b981'}">${r.beta.toFixed(2)}</td>
+            <td style="text-align:right; font-weight:bold">${((r.contrib / weightedBetaSum) * 100).toFixed(1)}%</td>
+        </tr>
+    `).join('');
 
     const riskHtml = `
         <div class="kpi-row">
             <div class="kpi-card" style="border-left: 4px solid ${riskColor}">
                 <span class="kpi-label">Portfolio Beta</span>
                 <h2>${portfolioBeta.toFixed(2)}</h2>
-                <small style="color:${riskColor}">${riskLabel}</small>
+                <small style="color:${riskColor}; font-weight:bold">${riskLabel}</small>
             </div>
             <div class="kpi-card">
-                <span class="kpi-label">Commodity Exposure</span>
+                <span class="kpi-label">Commodity (High Vol)</span>
                 <h2>${((categoryExposure['COMMODITY'] / totalValue) * 100).toFixed(1)}%</h2>
             </div>
             <div class="kpi-card">
-                <span class="kpi-label">Equity Exposure</span>
-                <h2>${((categoryExposure['NSE'] / totalValue) * 100).toFixed(1)}%</h2>
+                <span class="kpi-label">VaR (95% Daily)</span>
+                <h2 class="text-down">-$${(totalValue * 0.0165 * portfolioBeta).toFixed(2)}</h2>
+                <small class="neutral">Est. Max Daily Loss</small>
             </div>
             <div class="kpi-card">
-                <span class="kpi-label">VaR (95% Conf.)</span>
-                <h2 class="text-down">-$${(totalValue * 0.05 * portfolioBeta).toFixed(2)}</h2>
+                <span class="kpi-label">Diversification Score</span>
+                <h2>${(100 - (portfolioBeta * 20)).toFixed(0)}/100</h2>
             </div>
         </div>
-        <div class="panel">
-            <h3>Analyst Commentary</h3>
-            <p style="color:#94a3b8; font-size:13px; margin-top:10px;">
-                This portfolio carries a weighted Beta of <b>${portfolioBeta.toFixed(2)}</b> against the NIFTY50 benchmark.
-                Based on current volatility, there is a 5% probability of a loss exceeding 
-                <b>$${(totalValue * 0.05 * portfolioBeta).toFixed(2)}</b> in a single trading day.
-            </p>
+
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
+            <div class="panel">
+                <h3>⚠️ Top Risk Contributors</h3>
+                <table class="trade-table" style="margin-top:15px">
+                    <thead>
+                        <tr><th style="padding-left:0">Asset</th><th style="text-align:right">Value</th><th style="text-align:right">Beta</th><th style="text-align:right">Risk Contrib %</th></tr>
+                    </thead>
+                    <tbody>
+                        ${contribRows}
+                    </tbody>
+                </table>
+            </div>
+            <div class="panel">
+                <h3>Analyst Summary</h3>
+                <p style="color:#94a3b8; font-size:13px; line-height: 1.6; margin-top:10px;">
+                    The portfolio is currently <b>${riskLabel}</b> with a Beta of <b>${portfolioBeta.toFixed(2)}</b> relative to the benchmark. 
+                    <br><br>
+                    The largest risk concentration is in <b>${riskContributors[0].symbol}</b>, accounting for over 
+                    ${((riskContributors[0].contrib / weightedBetaSum) * 100).toFixed(0)}% of the total volatility exposure.
+                    <br><br>
+                    Recommendation: ${portfolioBeta > 1.1 ? 'Consider hedging with Fixed Income or Gold.' : 'Portfolio is well positioned for stable growth.'}
+                </p>
+            </div>
         </div>
     `;
     
@@ -497,15 +540,135 @@ async function handleOnboard(e) {
     } catch(err) { console.error(err); }
 }
 
+function processHoldingsData(holdings) {
+    return holdings.map(h => {
+        // Simulate market volatility based on asset category
+        const volatility = h.asset.category === 'COMMODITY' ? 0.08 : 0.04; 
+        const noise = (Math.random() * volatility * 2) - volatility; 
+        const curPrice = h.avgBuyPrice * (1 + noise);
+        
+        return {
+            ...h,
+            curPrice: curPrice,
+            mktValue: curPrice * h.quantity,
+            invested: h.avgBuyPrice * h.quantity,
+            pnl: (curPrice - h.avgBuyPrice) * h.quantity,
+            pnlPct: noise * 100
+        };
+    });
+}
+
 async function runComparison() {
-    const c1 = document.getElementById('compClient1').value;
-    const c2 = document.getElementById('compClient2').value;
-    if(!c1 || !c2) return alert("Select 2 clients");
+    const c1Id = document.getElementById('compClient1').value;
+    const c2Id = document.getElementById('compClient2').value;
     
-    // Simplistic Comparison logic implementation for visual
-    // Fetch data for both, calculate totals, render charts (abbreviated for brevity)
-    // You can copy the full logic from previous versions if needed.
-    alert("Comparison engine loaded for Client " + c1 + " vs " + c2);
+    if(!c1Id || !c2Id) return alert("Please select two distinct clients to compare.");
+    if(c1Id === c2Id) return alert("Select different clients for comparison.");
+
+    try {
+        // 1. Parallel Fetch of both portfolios
+        const [res1, res2] = await Promise.all([
+            fetch(`${API_BASE}/portfolio/${c1Id}`),
+            fetch(`${API_BASE}/portfolio/${c2Id}`)
+        ]);
+
+        const raw1 = await res1.json();
+        const raw2 = await res2.json();
+
+        // 2. Process Data (Calculate Market Values)
+        const p1 = processHoldingsData(raw1);
+        const p2 = processHoldingsData(raw2);
+
+        // 3. Calculate Aggregates
+        const getTotal = (p) => p.reduce((acc, h) => acc + h.mktValue, 0);
+        const getAllocation = (p, cat) => p.filter(h => h.asset.category === cat).reduce((acc, h) => acc + h.mktValue, 0);
+
+        const v1 = getTotal(p1);
+        const v2 = getTotal(p2);
+
+        // 4. Render Value Comparison Chart (Bar)
+        const ctxVal = document.getElementById('compValueChart').getContext('2d');
+        if(compChart1) compChart1.destroy();
+
+        compChart1 = new Chart(ctxVal, {
+            type: 'bar',
+            data: {
+                labels: ['Net Liquidation Value', 'Commodity Exposure', 'Equity Exposure'],
+                datasets: [
+                    {
+                        label: 'Client A',
+                        data: [v1, getAllocation(p1, 'COMMODITY'), getAllocation(p1, 'NSE')],
+                        backgroundColor: '#3b82f6'
+                    },
+                    {
+                        label: 'Client B',
+                        data: [v2, getAllocation(p2, 'COMMODITY'), getAllocation(p2, 'NSE')],
+                        backgroundColor: '#f59e0b'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#94a3b8' } } },
+                scales: { 
+                    y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+                    x: { ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+
+        // 5. Render Risk/Return Scatter (Simulated)
+        // We calculate a weighted beta for X-axis and a simulated YTD return for Y-axis
+        const calcBeta = (p, val) => {
+            if(val === 0) return 0;
+            const weights = { 'COMMODITY': 1.5, 'NSE': 1.0, 'MF': 0.7 };
+            return p.reduce((acc, h) => acc + (h.mktValue * (weights[h.asset.category] || 1)), 0) / val;
+        };
+
+        const beta1 = calcBeta(p1, v1);
+        const beta2 = calcBeta(p2, v2);
+
+        const ctxScatter = document.getElementById('compScatterChart').getContext('2d');
+        if(compChart2) compChart2.destroy();
+
+        compChart2 = new Chart(ctxScatter, {
+            type: 'bubble',
+            data: {
+                datasets: [
+                    {
+                        label: 'Client A',
+                        data: [{ x: beta1, y: (beta1 * 8) + (Math.random()*5), r: 15 }], // Simulated CAPM-like return
+                        backgroundColor: '#3b82f6'
+                    },
+                    {
+                        label: 'Client B',
+                        data: [{ x: beta2, y: (beta2 * 8) + (Math.random()*5), r: 15 }],
+                        backgroundColor: '#f59e0b'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { title: { display: true, text: 'Portfolio Beta (Risk)', color: '#64748b' }, grid: { color: '#1e293b' } },
+                    y: { title: { display: true, text: 'Expected Return (%)', color: '#64748b' }, grid: { color: '#1e293b' } }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.dataset.label}: Beta ${ctx.raw.x.toFixed(2)}, Return ${ctx.raw.y.toFixed(2)}%`
+                        }
+                    }
+                }
+            }
+        });
+
+    } catch(e) { 
+        console.error("Comparison Error", e); 
+        alert("Failed to run comparison. Ensure both clients have data."); 
+    }
 }
 
 function openTradeModal(type) { document.getElementById('tradeModal').style.display='block'; document.getElementById('modalTitle').innerText = type+' ORDER'; }
