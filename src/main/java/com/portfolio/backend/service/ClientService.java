@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class ClientService {
+public class ClientService implements ClientServiceInterface {
 
     @Autowired
     private ClientRepository clientRepository;
