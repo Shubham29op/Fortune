@@ -250,3 +250,45 @@ select { background: #000; color: white; border: 1px solid var(--border); paddin
 .close-btn { float: right; cursor: pointer; font-size: 18px; }
 .page-view { display: none; }
 .page-view.active { display: block; }
+
+/* --- ASSET WINDOW STYLES --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7); z-index: 1000;
+    display: flex; justify-content: center; align-items: center;
+    backdrop-filter: blur(4px);
+}
+
+.asset-window {
+    background: #1e1e1e; width: 700px; max-width: 90%;
+    border-radius: 12px; border: 1px solid #333;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    overflow: hidden; display: flex; flex-direction: column;
+}
+
+.modal-header {
+    padding: 25px; border-bottom: 1px solid #333;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    background: rgba(255,255,255,0.02);
+}
+
+.asset-category {
+    font-size: 0.75rem; padding: 4px 8px; border-radius: 4px;
+    background: #333; color: #aaa; text-transform: uppercase; letter-spacing: 1px;
+}
+
+.big-price { font-size: 2.2rem; font-weight: bold; color: #fff; }
+.price-change { font-size: 1rem; margin-top: 5px; text-align: right; }
+
+.chart-controls {
+    padding: 15px 25px; display: flex; gap: 10px; border-top: 1px solid #333;
+    background: #181818;
+}
+
+.time-btn {
+    background: transparent; border: 1px solid #444; color: #888;
+    padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: 0.2s;
+}
+.time-btn:hover, .time-btn.active { background: #2962ff; color: white; border-color: #2962ff; }
+.close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #666; }
+.close-btn:hover { color: #fff; }
