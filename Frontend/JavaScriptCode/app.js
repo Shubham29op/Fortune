@@ -16,6 +16,7 @@ let assetShareInstance = null;
 let currentAssetHoldingId = null;
 let compChart1 = null;
 let compChart2 = null;
+let pendingSellHoldingId = null;
 
 // --- Init ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -24,6 +25,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchClients();
     renderWatchlist();
     startLiveEngine();
+
+    // Ensure modals are hidden on load
+    const tm = document.getElementById('tradeModal'); if (tm) tm.style.display = 'none';
+    const wm = document.getElementById('wlModal'); if (wm) wm.style.display = 'none';
+    const am = document.getElementById('assetModal'); if (am) am.style.display = 'none';
+    const sm = document.getElementById('sellModal'); if (sm) sm.style.display = 'none';
     
     // Auto-load history
     renderHistoryTable();
@@ -296,33 +303,7 @@ function saveWatchlist() { localStorage.setItem('mgr_watchlist', JSON.stringify(
 function openWatchlistModal() { document.getElementById('wlModal').style.display = 'block'; }
 
 // --- Realized Profit & History Logic ---
-async function sellAsset(holdingId) {
-    if(!confirm("Execute Sell Order? This will realize P&L.")) return;
-
-    const holding = currentHoldings.find(h => h.holdingId === holdingId);
-    if(holding) {
-        const realizedPnL = holding.pnl; 
-        
-        const record = {
-            date: new Date().toLocaleDateString(),
-            symbol: holding.asset.symbol,
-            type: 'SELL',
-            qty: holding.quantity,
-            buy: holding.avgBuyPrice,
-            sell: holding.curPrice,
-            profit: realizedPnL
-        };
-        historyLog.unshift(record);
-        localStorage.setItem('mgr_history', JSON.stringify(historyLog));
-    }
-
-    try {
-        await fetch(`${API_BASE}/portfolio/${holdingId}`, { method: 'DELETE' });
-        updateRealizedKPI();
-        renderHistoryTable();
-        loadGlobalContext(); 
-    } catch(e) { alert("Execution Failed"); }
-}
+function sellAsset(holdingId) { openSellModal(holdingId); }
 
 function renderHistoryTable() {
     const tbody = document.getElementById('historyTable');
@@ -786,6 +767,76 @@ async function executeTrade(e) {
     await fetch(`${API_BASE}/portfolio/buy`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
     closeModal('tradeModal');
     loadGlobalContext();
+}
+
+// --- Sell Modal ---
+function openSellModal(holdingId) {
+    const holding = currentHoldings.find(h => h.holdingId === holdingId);
+    if (!holding) return;
+    pendingSellHoldingId = holdingId;
+
+    const labelEl = document.getElementById('sellAssetLabel');
+    const qtyEl = document.getElementById('sellQty');
+    const mktEl = document.getElementById('sellMarketPrice');
+    const customEl = document.getElementById('sellCustomPrice');
+
+    if (labelEl) labelEl.value = `${holding.asset.symbol} — ${holding.asset.assetName}`;
+    if (qtyEl) qtyEl.value = holding.quantity;
+    if (mktEl) mktEl.innerText = fmtUSD(holding.curPrice);
+    if (customEl) { customEl.value = ''; customEl.disabled = true; }
+
+    const radios = document.getElementsByName('sellPriceMode');
+    if (radios && radios.length) {
+        for (const r of radios) {
+            r.checked = (r.value === 'market');
+            r.onchange = () => {
+                const mode = document.querySelector('input[name="sellPriceMode"]:checked')?.value || 'market';
+                if (customEl) customEl.disabled = mode !== 'custom';
+            };
+        }
+    }
+
+    const modal = document.getElementById('sellModal');
+    if (modal) modal.style.display = 'block';
+}
+
+async function executeSellFromModal() {
+    if (pendingSellHoldingId == null) return;
+    const holding = currentHoldings.find(h => h.holdingId === pendingSellHoldingId);
+    if (!holding) return;
+
+    const mode = document.querySelector('input[name="sellPriceMode"]:checked')?.value || 'market';
+    let sellPrice = holding.curPrice;
+    if (mode === 'custom') {
+        const customEl = document.getElementById('sellCustomPrice');
+        const val = parseFloat(customEl && customEl.value ? customEl.value : '');
+        if (!isFinite(val) || val <= 0) { alert('Enter a valid custom price'); return; }
+        sellPrice = val;
+    }
+
+    const realizedPnL = (sellPrice - holding.avgBuyPrice) * holding.quantity;
+    const record = {
+        date: new Date().toLocaleDateString(),
+        symbol: holding.asset.symbol,
+        type: 'SELL',
+        qty: holding.quantity,
+        buy: holding.avgBuyPrice,
+        sell: sellPrice,
+        profit: realizedPnL
+    };
+    historyLog.unshift(record);
+    localStorage.setItem('mgr_history', JSON.stringify(historyLog));
+
+    try {
+        await fetch(`${API_BASE}/portfolio/${holding.holdingId}`, { method: 'DELETE' });
+        updateRealizedKPI();
+        renderHistoryTable();
+        loadGlobalContext();
+        closeModal('sellModal');
+        pendingSellHoldingId = null;
+    } catch (e) {
+        alert('Execution Failed');
+    }
 }
 
 // --- Asset Detail Modal ---
