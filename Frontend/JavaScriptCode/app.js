@@ -8,6 +8,9 @@ let historyLog = JSON.parse(localStorage.getItem('mgr_history')) || [];
 let liveInterval = null;
 let chartInstance = null;
 let allocationChart = null;
+let monthlyChart = null;
+let recentTxChart = null;
+let topHoldingsChart = null;
 let compChart1 = null;
 let compChart2 = null;
 
@@ -324,6 +327,8 @@ function renderHistoryTable() {
     
     if(historyLog.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#555">No realized trades yet.</td></tr>';
+        // Update charts to reflect empty state
+        renderCharts();
         return;
     }
 
@@ -349,6 +354,7 @@ function clearHistory() {
         localStorage.removeItem('mgr_history');
         renderHistoryTable();
         updateRealizedKPI();
+        renderCharts();
     }
 }
 
@@ -500,6 +506,98 @@ function renderCharts() {
                         }, 300);
                     }
                 }
+            }
+        }
+    });
+
+    // Monthly Realized P&L (last 12 months)
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    const now = new Date();
+    const monthLabels = [];
+    const monthKeys = [];
+    for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        monthKeys.push(key);
+        monthLabels.push(d.toLocaleString('en-US', { month: 'short' }) + ' ' + String(d.getFullYear()).slice(-2));
+    }
+    const monthlyAgg = monthKeys.reduce((acc, k) => (acc[k] = 0, acc), {});
+    historyLog.forEach(tx => {
+        const d = new Date(tx.date);
+        if (!isNaN(d)) {
+            const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+            if (monthlyAgg[key] !== undefined) monthlyAgg[key] += tx.profit;
+        }
+    });
+    if (monthlyChart) monthlyChart.destroy();
+    monthlyChart = new Chart(monthlyCtx, {
+        type: 'bar',
+        data: {
+            labels: monthLabels,
+            datasets: [{
+                label: 'Realized P&L',
+                data: monthKeys.map(k => monthlyAgg[k]),
+                backgroundColor: monthKeys.map(k => monthlyAgg[k] >= 0 ? 'rgba(16,185,129,0.7)' : 'rgba(239,68,68,0.7)')
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { 
+                x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+                y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } }
+            }
+        }
+    });
+
+    // Recent Transactions (last 8)
+    const recentCtx = document.getElementById('recentTxChart').getContext('2d');
+    const recent = historyLog.slice(0, 8).reverse();
+    if (recentTxChart) recentTxChart.destroy();
+    recentTxChart = new Chart(recentCtx, {
+        type: 'bar',
+        data: {
+            labels: recent.map(r => `${r.symbol}`),
+            datasets: [{
+                label: 'P&L',
+                data: recent.map(r => r.profit),
+                backgroundColor: recent.map(r => r.profit >= 0 ? 'rgba(16,185,129,0.7)' : 'rgba(239,68,68,0.7)')
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+                y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } }
+            }
+        }
+    });
+
+    // Top 5 Holdings by Market Value
+    const topCtx = document.getElementById('topHoldingsChart').getContext('2d');
+    const top = [...currentHoldings].sort((a,b) => b.mktValue - a.mktValue).slice(0,5);
+    if (topHoldingsChart) topHoldingsChart.destroy();
+    topHoldingsChart = new Chart(topCtx, {
+        type: 'bar',
+        data: {
+            labels: top.map(t => t.asset.symbol),
+            datasets: [{
+                label: 'Market Value',
+                data: top.map(t => t.mktValue),
+                backgroundColor: '#3b82f6'
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+                y: { grid: { display: false }, ticks: { color: '#94a3b8' } }
             }
         }
     });
