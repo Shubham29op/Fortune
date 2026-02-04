@@ -686,3 +686,33 @@ async function executeTrade(e) {
     closeModal('tradeModal');
     loadGlobalContext();
 }
+
+/* ================= THEME TOGGLE ================= */
+
+const themeToggle = document.getElementById("themeToggle");
+const root = document.documentElement;
+
+// Load saved theme
+const savedTheme = localStorage.getItem("fortune-theme") || "dark";
+root.setAttribute("data-theme", savedTheme);
+updateThemeIcon(savedTheme);
+
+themeToggle.addEventListener("click", () => {
+    const current = root.getAttribute("data-theme");
+    const next = current === "dark" ? "light" : "dark";
+
+    root.setAttribute("data-theme", next);
+    localStorage.setItem("fortune-theme", next);
+    updateThemeIcon(next);
+
+    // Update charts if they exist
+    if (window.mainChart) mainChart.update();
+    if (window.allocationChart) allocationChart.update();
+});
+
+function updateThemeIcon(theme) {
+    themeToggle.innerHTML =
+        theme === "dark"
+            ? '<i class="fa-solid fa-sun"></i>'
+            : '<i class="fa-solid fa-moon"></i>';
+}
