@@ -1,0 +1,43 @@
+FINANCIAL DEFINITIONS & TERMINOLOGY
+
+PORTFOLIO MANAGEMENT:
+- Portfolio: A collection of investments (assets) held by a client or investor
+- Asset: An individual investment instrument (stock, commodity, mutual fund, bond)
+- Holding: A specific position in an asset (quantity and purchase price)
+- Asset Under Management (AUM): Total market value of all assets in a portfolio
+- Net Worth: Total portfolio value minus any liabilities
+
+PERFORMANCE METRICS:
+- Profit & Loss (P&L): The difference between current value and cost basis
+- Unrealized P&L: Gains or losses on positions that haven't been sold yet
+- Realized P&L: Gains or losses from completed trades (sold positions)
+- Cost Basis: The original purchase price of an asset
+- Market Value: Current market price × quantity held
+- Return on Investment (ROI): Percentage gain or loss relative to initial investment
+
+RISK METRICS:
+- Beta: Measure of portfolio volatility relative to market benchmark
+  * Beta = 1.0: Moves with market average
+  * Beta > 1.0: More volatile than market (aggressive)
+  * Beta < 1.0: Less volatile than market (conservative)
+- Value at Risk (VaR): Maximum potential loss at a given confidence level (e.g., 95%)
+- Volatility: Measure of price fluctuations over time
+- Standard Deviation: Statistical measure of price variability
+
+ASSET CATEGORIES:
+- NSE (National Stock Exchange): Equity stocks traded on Indian stock exchange
+- MF (Mutual Fund): Pooled investment funds managed by professional managers
+- COMMODITY: Physical goods (gold, silver, oil, agricultural products)
+
+RISK CONCEPTS:
+- Concentration Risk: Over-exposure to a single asset, sector, or category
+- Diversification: Spreading investments across different assets to reduce risk
+- Correlation: How assets move relative to each other
+- Liquidity Risk: Difficulty selling an asset without significant price impact
+- Market Risk: Risk of losses due to overall market movements
+
+PORTFOLIO MANAGEMENT CONCEPTS:
+- Rebalancing: Adjusting portfolio allocation to maintain target percentages
+- Asset Allocation: Distribution of investments across different asset categories
+- Dollar-Cost Averaging: Investing fixed amounts regularly regardless of price
+- Buy and Hold: Long-term investment strategy without frequent trading

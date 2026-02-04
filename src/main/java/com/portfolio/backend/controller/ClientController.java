@@ -1,7 +1,7 @@
 package com.portfolio.backend.controller;
 
 import com.portfolio.backend.entity.Client;
-import com.portfolio.backend.service.ClientService;
+import com.portfolio.backend.service.ClientServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +13,7 @@ import java.util.List;
 public class ClientController {
 
     @Autowired
-    private ClientService clientService;
+    private ClientServiceInterface clientService;
 
     // GET /api/clients
     // Returns a list of all clients (used for the Manager's dropdown)

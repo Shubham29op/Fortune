@@ -29,9 +29,8 @@ function switchPage(pageId) {
     document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-menu li').forEach(l => l.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
-    
-    // Trigger Logic for specific pages
-    if(pageId === 'risk') calculateRiskProfile();
+
+    if (pageId === 'risk') calculateRiskProfile();
 }
 
 // --- Data Fetching ---
@@ -404,7 +403,45 @@ function renderCharts() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { position: 'right', labels: { color: '#94a3b8' } } }
+            plugins: { 
+                legend: { position: 'right', labels: { color: '#94a3b8' } },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: (context) => {
+                            // Add chatbot integration hint
+                            return '💬 Click to explain this chart';
+                        }
+                    }
+                }
+            },
+            onClick: (event, elements) => {
+                if (elements.length > 0 && window.chatbot) {
+                    const element = elements[0];
+                    const label = allocationChart.data.labels[element.index];
+                    const value = allocationChart.data.datasets[0].data[element.index];
+                    const total = Object.values(categories).reduce((a, b) => a + b, 0);
+                    const percentage = ((value / total) * 100).toFixed(1);
+                    
+                    window.chatbot.setVisualizationContext('doughnut', 'allocationChart', {
+                        xAxis: 'Category',
+                        yAxis: 'Allocation Percentage',
+                        calculatedMetrics: {
+                            [label]: percentage + '%',
+                            'Total Value': '$' + total.toLocaleString()
+                        }
+                    });
+                    if (window.chatbot.isOpen) {
+                        document.getElementById('chatbotInput').value = 'Explain this allocation chart';
+                        window.chatbot.sendMessage();
+                    } else {
+                        window.chatbot.toggle();
+                        setTimeout(() => {
+                            document.getElementById('chatbotInput').value = 'Explain this allocation chart';
+                            window.chatbot.sendMessage();
+                        }, 300);
+                    }
+                }
+            }
         }
     });
 
@@ -428,8 +465,42 @@ function renderCharts() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { x: { grid: { display: false } }, y: { grid: { color: '#1e293b' } } }
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: () => '💬 Click to explain this trend'
+                    }
+                }
+            },
+            scales: { x: { grid: { display: false } }, y: { grid: { color: '#1e293b' } } },
+            onClick: (event, elements) => {
+                if (elements.length > 0 && window.chatbot) {
+                    const element = elements[0];
+                    const label = chartInstance.data.labels[element.index];
+                    const value = chartInstance.data.datasets[0].data[element.index];
+                    
+                    window.chatbot.setVisualizationContext('line', 'mainChart', {
+                        xAxis: 'Time',
+                        yAxis: 'Portfolio Value',
+                        timeRange: '5 days',
+                        hoverData: {
+                            'Date': label,
+                            'Value': '$' + value.toLocaleString()
+                        }
+                    });
+                    if (window.chatbot.isOpen) {
+                        document.getElementById('chatbotInput').value = 'Explain this performance trend';
+                        window.chatbot.sendMessage();
+                    } else {
+                        window.chatbot.toggle();
+                        setTimeout(() => {
+                            document.getElementById('chatbotInput').value = 'Explain this performance trend';
+                            window.chatbot.sendMessage();
+                        }, 300);
+                    }
+                }
+            }
         }
     });
 }
