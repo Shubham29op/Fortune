@@ -173,6 +173,21 @@
                 <div class="panel full-height">
                     <div class="panel-header">
                         <h3>Active Positions</h3>
+                        <button class="btn-icon" onclick="exportHoldingsCSV()">Export CSV</button>
+                    </div>
+                    <div class="chart-grid" style="margin-bottom: 20px;">
+                        <div class="panel">
+                            <div class="panel-header"><h3>P&L Distribution</h3></div>
+                            <div class="chart-wrapper">
+                                <canvas id="pnlDistributionChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-header"><h3>Category Performance</h3></div>
+                            <div class="chart-wrapper">
+                                <canvas id="categoryPerformanceChart"></canvas>
+                            </div>
+                        </div>
                     </div>
                     <div class="table-container">
                         <table class="trade-table">
@@ -199,7 +214,24 @@
                 <div class="panel full-height">
                     <div class="panel-header">
                         <h3>Realized Trade History</h3>
-                        <button class="btn-icon" onclick="clearHistory()">Clear History</button>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-icon" onclick="exportHistoryCSV()">Export CSV</button>
+                            <button class="btn-icon" onclick="clearHistory()">Clear History</button>
+                        </div>
+                    </div>
+                    <div class="chart-grid" style="margin-bottom: 20px;">
+                        <div class="panel">
+                            <div class="panel-header"><h3>Trade Win Rate</h3></div>
+                            <div class="chart-wrapper">
+                                <canvas id="winRateChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-header"><h3>Profit by Asset</h3></div>
+                            <div class="chart-wrapper">
+                                <canvas id="profitByAssetChart"></canvas>
+                            </div>
+                        </div>
                     </div>
                     <div class="table-container">
                         <table class="trade-table">

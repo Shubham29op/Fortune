@@ -19,10 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * LLM Service with Gemini API integration and fallback strategy
- * Handles retries, rate limits, and multiple API keys
- */
 @Service
 @Slf4j
 public class LLMService implements LLMServiceInterface {
@@ -39,19 +35,14 @@ public class LLMService implements LLMServiceInterface {
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
         
-        // Initialize API keys if not configured
         if (config.getApiKeys() == null || config.getApiKeys().isEmpty()) {
             log.warn("No Gemini API keys configured. Chatbot will use fallback responses.");
         }
     }
     
-    /**
-     * Generate response using Gemini API with fallback strategy
-     */
     public ChatResponse generateResponse(String prompt, String context) {
         String fullPrompt = buildPrompt(prompt, context);
         
-        // Try each API key with retries
         for (int attempt = 0; attempt < config.getMaxRetries(); attempt++) {
             String apiKey = getNextApiKey();
             
@@ -62,14 +53,13 @@ public class LLMService implements LLMServiceInterface {
                 
                 if (isRetryableError(e) && attempt < config.getMaxRetries() - 1) {
                     try {
-                        Thread.sleep(1000 * (attempt + 1)); // Exponential backoff
+                        Thread.sleep(1000 * (attempt + 1));
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
                     }
                     continue;
                 }
                 
-                // If all retries exhausted, try next API key or return fallback
                 if (attempt == config.getMaxRetries() - 1) {
                     return createFallbackResponse(prompt);
                 }
@@ -134,7 +124,6 @@ public class LLMService implements LLMServiceInterface {
             log.error("Request URL: {}", url);
             log.error("Request body: {}", requestBody);
             
-            // Check for specific error types
             if (statusCode == 400) {
                 log.error("Bad Request - Check API key format and request structure");
             } else if (statusCode == 401) {
@@ -169,7 +158,6 @@ public class LLMService implements LLMServiceInterface {
             
             String text = parts.get(0).path("text").asText("");
             
-            // Check confidence (simplified - in production, use actual confidence scores)
             ChatResponse.ConfidenceLevel confidence = estimateConfidence(text);
             
             ChatResponse response = new ChatResponse();

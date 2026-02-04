@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "assets")
-@Data // Lombok: Generates Getters, Setters, toString, etc.
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Asset {
@@ -18,15 +18,14 @@ public class Asset {
     private Long assetId;
 
     @Column(unique = true, nullable = false)
-    private String symbol; // e.g., 'RELIANCE', 'GOLD'
+    private String symbol;
 
     @Column(nullable = false)
-    private String assetName; // e.g., 'Reliance Industries', 'Gold 24k'
+    private String assetName;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private AssetCategory category; // NSE, MF, or COMMODITY
+    private AssetCategory category;
 
-    // Optional: Useful for searching later
     private String description;
 }

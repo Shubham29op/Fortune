@@ -1,6 +1,5 @@
 const API_BASE = "http://localhost:8080/api";
 
-// State Management
 let currentHoldings = [];
 let assetCatalog = [];
 let watchlist = JSON.parse(localStorage.getItem('mgr_watchlist')) || [];
@@ -17,8 +16,11 @@ let currentAssetHoldingId = null;
 let compChart1 = null;
 let compChart2 = null;
 let pendingSellHoldingId = null;
+let pnlDistributionChart = null;
+let categoryPerformanceChart = null;
+let winRateChart = null;
+let profitByAssetChart = null;
 
-// --- Init ---
 document.addEventListener('DOMContentLoaded', async () => {
     updateTime();
     await fetchAssets();
@@ -26,33 +28,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderWatchlist();
     startLiveEngine();
 
-    // Ensure modals are hidden on load
     const tm = document.getElementById('tradeModal'); if (tm) tm.style.display = 'none';
     const wm = document.getElementById('wlModal'); if (wm) wm.style.display = 'none';
     const am = document.getElementById('assetModal'); if (am) am.style.display = 'none';
     const sm = document.getElementById('sellModal'); if (sm) sm.style.display = 'none';
     
-    // Auto-load history
     renderHistoryTable();
     updateRealizedKPI();
 });
 
-// --- Navigation ---
 function switchPage(pageId) {
     document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-menu li').forEach(l => l.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
 
     if (pageId === 'risk') calculateRiskProfile();
+    if (pageId === 'holdings') renderHoldingsCharts();
+    if (pageId === 'history') renderHistoryCharts();
 }
 
-// --- Data Fetching ---
 async function fetchAssets() {
     try {
         const res = await fetch(`${API_BASE}/assets`);
         assetCatalog = await res.json();
         
-        // Populate Selects
         const tradeSel = document.getElementById('tradeAsset');
         const wlSel = document.getElementById('wlAssetSelect');
         tradeSel.innerHTML = wlSel.innerHTML = '';
@@ -70,11 +69,9 @@ async function fetchClients() {
         const res = await fetch(`${API_BASE}/clients`);
         const clients = await res.json();
         
-        // 1. Global Selector
         const sel = document.getElementById('globalClientSelect');
         sel.innerHTML = '<option value="">-- Select Account --</option>';
         
-        // 2. Comparison Selectors
         const comp1 = document.getElementById('compClient1');
         const comp2 = document.getElementById('compClient2');
         if(comp1) comp1.innerHTML = '<option value="">-- Client A --</option>';
@@ -97,7 +94,6 @@ async function loadGlobalContext() {
         const res = await fetch(`${API_BASE}/portfolio/${clientId}`);
         const rawData = await res.json();
         
-        // MOCK LIVE MARKET: Apply random noise
         currentHoldings = rawData.map(h => {
             const volatility = h.asset.category === 'COMMODITY' ? 0.08 : 0.04; 
             const noise = (Math.random() * volatility * 2) - volatility; 
@@ -116,14 +112,13 @@ async function loadGlobalContext() {
         updateDashboard();
         renderHoldings();
         renderCharts();
+        renderHistoryCharts();
 
-        // If Risk Page is open, refresh it
         if(document.getElementById('risk').classList.contains('active')) calculateRiskProfile();
 
     } catch(e) { console.error("Portfolio Error", e); }
 }
 
-// --- Dashboard Logic ---
 function updateDashboard() {
     let totalInvested = 0, totalVal = 0, totalUnrealized = 0;
 
@@ -155,16 +150,12 @@ function updateRealizedKPI() {
     el.className = totalRealized >= 0 ? "text-up" : "text-down";
 }
 
-// --- RISK ANALYSIS ENGINE (Preserved & Merged) ---
 function calculateRiskProfile() {
-    // Standard Beta Weights
     const weights = { 'COMMODITY': 1.5, 'NSE': 1.0, 'MF': 0.7 };
     
     let totalValue = 0;
     let weightedBetaSum = 0;
     let categoryExposure = { 'COMMODITY': 0, 'NSE': 0, 'MF': 0 };
-    
-    // Risk Contribution Table Data
     let riskContributors = [];
 
     currentHoldings.forEach(h => {
@@ -191,16 +182,13 @@ function calculateRiskProfile() {
 
     const portfolioBeta = weightedBetaSum / totalValue;
     
-    // Determine Risk Label
     let riskLabel = "MODERATE";
-    let riskColor = "#f59e0b"; // Orange
-    if(portfolioBeta < 0.8) { riskLabel = "CONSERVATIVE"; riskColor = "#10b981"; } // Green
-    if(portfolioBeta > 1.2) { riskLabel = "AGGRESSIVE"; riskColor = "#ef4444"; }   // Red
+    let riskColor = "#f59e0b";
+    if(portfolioBeta < 0.8) { riskLabel = "CONSERVATIVE"; riskColor = "#10b981"; }
+    if(portfolioBeta > 1.2) { riskLabel = "AGGRESSIVE"; riskColor = "#ef4444"; }
 
-    // Sort contributors by risk impact
     riskContributors.sort((a, b) => b.contrib - a.contrib);
 
-    // Generate Risk Contribution Rows
     const contribRows = riskContributors.slice(0, 3).map(r => `
         <tr>
             <td style="color:var(--text-main)">${r.symbol}</td>
@@ -261,7 +249,6 @@ function calculateRiskProfile() {
     document.getElementById('riskContent').innerHTML = riskHtml;
 }
 
-// --- Watchlist Logic ---
 function addToWatchlist() {
     const sel = document.getElementById('wlAssetSelect');
     const symbol = sel.options[sel.selectedIndex].text.split(" - ")[0];
@@ -302,7 +289,6 @@ function renderWatchlist() {
 function saveWatchlist() { localStorage.setItem('mgr_watchlist', JSON.stringify(watchlist)); }
 function openWatchlistModal() { document.getElementById('wlModal').style.display = 'block'; }
 
-// --- Realized Profit & History Logic ---
 function sellAsset(holdingId) { openSellModal(holdingId); }
 
 function renderHistoryTable() {
@@ -311,8 +297,8 @@ function renderHistoryTable() {
     
     if(historyLog.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#555">No realized trades yet.</td></tr>';
-        // Update charts to reflect empty state
         renderCharts();
+        renderHistoryCharts();
         return;
     }
 
@@ -330,6 +316,107 @@ function renderHistoryTable() {
             </tr>
         `;
     });
+    
+    renderHistoryCharts();
+}
+
+function renderHistoryCharts() {
+    if (historyLog.length === 0) {
+        if (winRateChart) { winRateChart.destroy(); winRateChart = null; }
+        if (profitByAssetChart) { profitByAssetChart.destroy(); profitByAssetChart = null; }
+        return;
+    }
+    
+    const wins = historyLog.filter(tx => tx.profit > 0).length;
+    const losses = historyLog.filter(tx => tx.profit < 0).length;
+    const neutral = historyLog.filter(tx => tx.profit === 0).length;
+    const winRate = historyLog.length > 0 ? ((wins / historyLog.length) * 100).toFixed(1) : 0;
+    
+    const winRateCtx = document.getElementById('winRateChart');
+    if (winRateCtx) {
+        if (winRateChart) winRateChart.destroy();
+        winRateChart = new Chart(winRateCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Wins', 'Losses', 'Neutral'],
+                datasets: [{
+                    data: [wins, losses, neutral],
+                    backgroundColor: ['#10b981', '#ef4444', '#64748b']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#94a3b8' } },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${label}: ${value} (${pct}%)`;
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: `Win Rate: ${winRate}%`,
+                        color: '#94a3b8',
+                        font: { size: 14 }
+                    }
+                }
+            }
+        });
+    }
+    
+    const assetProfitMap = {};
+    historyLog.forEach(tx => {
+        if (!assetProfitMap[tx.symbol]) {
+            assetProfitMap[tx.symbol] = 0;
+        }
+        assetProfitMap[tx.symbol] += tx.profit;
+    });
+    
+    const sortedAssets = Object.entries(assetProfitMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+    
+    const profitCtx = document.getElementById('profitByAssetChart');
+    if (profitCtx && sortedAssets.length > 0) {
+        if (profitByAssetChart) profitByAssetChart.destroy();
+        profitByAssetChart = new Chart(profitCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: sortedAssets.map(a => a[0]),
+                datasets: [{
+                    label: 'Total Profit',
+                    data: sortedAssets.map(a => a[1]),
+                    backgroundColor: sortedAssets.map(a => a[1] >= 0 ? '#10b981' : '#ef4444')
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                return `Profit: $${context.parsed.x.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+                    y: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+    }
 }
 
 function clearHistory() {
@@ -342,20 +429,17 @@ function clearHistory() {
     }
 }
 
-// --- Live Engine ---
 function startLiveEngine() {
     if(liveInterval) clearInterval(liveInterval);
     setInterval(() => {
-        // 1. Tick Watchlist
         watchlist.forEach(w => {
-            const move = (Math.random() * 2) - 1; // -1% to +1%
+            const move = (Math.random() * 2) - 1;
             w.price = w.price * (1 + move/100);
             w.change = move;
         });
         saveWatchlist(); 
         renderWatchlist();
 
-        // 2. Tick Ticker Tape
         const ticker = document.getElementById('tickerTape');
         let html = '';
         watchlist.forEach(w => {
@@ -365,14 +449,11 @@ function startLiveEngine() {
         });
         ticker.innerHTML = html;
 
-        // 3. Update Time
         updateTime();
     }, 2000);
 }
 
-// --- Charting ---
 function renderCharts() {
-    // Allocation
     const ctxAlloc = document.getElementById('allocationChart').getContext('2d');
     const categories = {};
     currentHoldings.forEach(h => {
@@ -398,7 +479,6 @@ function renderCharts() {
                 tooltip: {
                     callbacks: {
                         afterLabel: (context) => {
-                            // Add chatbot integration hint
                             return '💬 Click to explain this chart';
                         }
                     }
@@ -435,7 +515,6 @@ function renderCharts() {
         }
     });
 
-    // Main Chart (Simple Mock)
     const ctxMain = document.getElementById('mainChart').getContext('2d');
     if (chartInstance) chartInstance.destroy();
 
@@ -494,7 +573,6 @@ function renderCharts() {
         }
     });
 
-    // Monthly Realized P&L (last 12 months)
     const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
     const now = new Date();
     const monthLabels = [];
@@ -527,15 +605,52 @@ function renderCharts() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: () => '💬 Click to explain this bar'
+                    }
+                }
+            },
             scales: { 
                 x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
                 y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } }
+            },
+            onClick: (event, elements) => {
+                if (elements.length > 0 && window.chatbot) {
+                    const element = elements[0];
+                    const label = monthlyChart.data.labels[element.index];
+                    const value = monthlyChart.data.datasets[0].data[element.index];
+
+                    window.chatbot.setVisualizationContext('bar', 'monthlyChart', {
+                        xAxis: 'Month',
+                        yAxis: 'Realized P&L',
+                        hoverData: {
+                            'Month': label,
+                            'Realized P&L': '$' + value.toLocaleString()
+                        }
+                    });
+
+                    const inputEl = document.getElementById('chatbotInput');
+                    const triggerMessage = 'Explain this monthly performance chart';
+
+                    if (window.chatbot.isOpen) {
+                        if (inputEl) inputEl.value = triggerMessage;
+                        window.chatbot.sendMessage();
+                    } else {
+                        window.chatbot.toggle();
+                        setTimeout(() => {
+                            const inputEl2 = document.getElementById('chatbotInput');
+                            if (inputEl2) inputEl2.value = triggerMessage;
+                            window.chatbot.sendMessage();
+                        }, 300);
+                    }
+                }
             }
         }
     });
 
-    // Recent Transactions (last 8)
     const recentCtx = document.getElementById('recentTxChart').getContext('2d');
     const recent = historyLog.slice(0, 8).reverse();
     if (recentTxChart) recentTxChart.destroy();
@@ -560,7 +675,6 @@ function renderCharts() {
         }
     });
 
-    // Top 5 Holdings by Market Value
     const topCtx = document.getElementById('topHoldingsChart').getContext('2d');
     const top = [...currentHoldings].sort((a,b) => b.mktValue - a.mktValue).slice(0,5);
     if (topHoldingsChart) topHoldingsChart.destroy();
@@ -578,21 +692,64 @@ function renderCharts() {
             indexAxis: 'y',
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: () => ' Click to explain this bar'
+                    }
+                }
+            },
             scales: {
                 x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
                 y: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+            },
+            onClick: (event, elements) => {
+                if (elements.length > 0 && window.chatbot) {
+                    const element = elements[0];
+                    const label = topHoldingsChart.data.labels[element.index];
+                    const value = topHoldingsChart.data.datasets[0].data[element.index];
+
+                    window.chatbot.setVisualizationContext('bar', 'topHoldingsChart', {
+                        xAxis: 'Asset',
+                        yAxis: 'Market Value',
+                        hoverData: {
+                            'Asset': label,
+                            'Market Value': '$' + value.toLocaleString()
+                        }
+                    });
+
+                    const inputEl = document.getElementById('chatbotInput');
+                    const triggerMessage = 'Explain this top holdings chart';
+
+                    if (window.chatbot.isOpen) {
+                        if (inputEl) inputEl.value = triggerMessage;
+                        window.chatbot.sendMessage();
+                    } else {
+                        window.chatbot.toggle();
+                        setTimeout(() => {
+                            const inputEl2 = document.getElementById('chatbotInput');
+                            if (inputEl2) inputEl2.value = triggerMessage;
+                            window.chatbot.sendMessage();
+                        }, 300);
+                    }
+                }
             }
         }
     });
 }
 
-// --- Utils & Client Onboard/Compare ---
 function updateTime() { document.getElementById('marketTime').innerText = new Date().toLocaleTimeString(); }
 
 function renderHoldings() {
     const tbody = document.getElementById('holdingsTable');
     tbody.innerHTML = '';
+    
+    if (currentHoldings.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#555">No active holdings.</td></tr>';
+        return;
+    }
+    
     currentHoldings.forEach(h => {
         const pnlC = h.pnl >= 0 ? 'text-up' : 'text-down';
         tbody.innerHTML += `
@@ -609,6 +766,108 @@ function renderHoldings() {
             </tr>
         `;
     });
+    
+    renderHoldingsCharts();
+}
+
+function renderHoldingsCharts() {
+    if (currentHoldings.length === 0) {
+        if (pnlDistributionChart) { pnlDistributionChart.destroy(); pnlDistributionChart = null; }
+        if (categoryPerformanceChart) { categoryPerformanceChart.destroy(); categoryPerformanceChart = null; }
+        return;
+    }
+    
+    const profitHoldings = currentHoldings.filter(h => h.pnl > 0);
+    const lossHoldings = currentHoldings.filter(h => h.pnl < 0);
+    const neutralHoldings = currentHoldings.filter(h => h.pnl === 0);
+    
+    const profitValue = profitHoldings.reduce((sum, h) => sum + h.pnl, 0);
+    const lossValue = Math.abs(lossHoldings.reduce((sum, h) => sum + h.pnl, 0));
+    
+    const pnlCtx = document.getElementById('pnlDistributionChart');
+    if (pnlCtx) {
+        if (pnlDistributionChart) pnlDistributionChart.destroy();
+        pnlDistributionChart = new Chart(pnlCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Profitable', 'Loss', 'Neutral'],
+                datasets: [{
+                    data: [profitHoldings.length, lossHoldings.length, neutralHoldings.length],
+                    backgroundColor: ['#10b981', '#ef4444', '#64748b']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#94a3b8' } },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${label}: ${value} (${pct}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    const categoryMap = {};
+    currentHoldings.forEach(h => {
+        const cat = h.asset.category || 'UNKNOWN';
+        if (!categoryMap[cat]) {
+            categoryMap[cat] = { totalPnl: 0, count: 0, totalValue: 0 };
+        }
+        categoryMap[cat].totalPnl += h.pnl;
+        categoryMap[cat].count += 1;
+        categoryMap[cat].totalValue += h.mktValue;
+    });
+    
+    const catCtx = document.getElementById('categoryPerformanceChart');
+    if (catCtx) {
+        if (categoryPerformanceChart) categoryPerformanceChart.destroy();
+        const categories = Object.keys(categoryMap);
+        categoryPerformanceChart = new Chart(catCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: categories,
+                datasets: [{
+                    label: 'Total P&L',
+                    data: categories.map(cat => categoryMap[cat].totalPnl),
+                    backgroundColor: categories.map(cat => categoryMap[cat].totalPnl >= 0 ? '#10b981' : '#ef4444')
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const cat = categories[context.dataIndex];
+                                const data = categoryMap[cat];
+                                return [
+                                    `P&L: $${data.totalPnl.toFixed(2)}`,
+                                    `Holdings: ${data.count}`,
+                                    `Value: $${data.totalValue.toFixed(2)}`
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+    }
 }
 
 async function handleOnboard(e) {
@@ -624,7 +883,6 @@ async function handleOnboard(e) {
 
 function processHoldingsData(holdings) {
     return holdings.map(h => {
-        // Simulate market volatility based on asset category
         const volatility = h.asset.category === 'COMMODITY' ? 0.08 : 0.04; 
         const noise = (Math.random() * volatility * 2) - volatility; 
         const curPrice = h.avgBuyPrice * (1 + noise);
@@ -648,7 +906,6 @@ async function runComparison() {
     if(c1Id === c2Id) return alert("Select different clients for comparison.");
 
     try {
-        // 1. Parallel Fetch of both portfolios
         const [res1, res2] = await Promise.all([
             fetch(`${API_BASE}/portfolio/${c1Id}`),
             fetch(`${API_BASE}/portfolio/${c2Id}`)
@@ -657,18 +914,15 @@ async function runComparison() {
         const raw1 = await res1.json();
         const raw2 = await res2.json();
 
-        // 2. Process Data (Calculate Market Values)
         const p1 = processHoldingsData(raw1);
         const p2 = processHoldingsData(raw2);
 
-        // 3. Calculate Aggregates
         const getTotal = (p) => p.reduce((acc, h) => acc + h.mktValue, 0);
         const getAllocation = (p, cat) => p.filter(h => h.asset.category === cat).reduce((acc, h) => acc + h.mktValue, 0);
 
         const v1 = getTotal(p1);
         const v2 = getTotal(p2);
 
-        // 4. Render Value Comparison Chart (Bar)
         const ctxVal = document.getElementById('compValueChart').getContext('2d');
         if(compChart1) compChart1.destroy();
 
@@ -700,8 +954,6 @@ async function runComparison() {
             }
         });
 
-        // 5. Render Risk/Return Scatter (Simulated)
-        // We calculate a weighted beta for X-axis and a simulated YTD return for Y-axis
         const calcBeta = (p, val) => {
             if(val === 0) return 0;
             const weights = { 'COMMODITY': 1.5, 'NSE': 1.0, 'MF': 0.7 };
@@ -720,7 +972,7 @@ async function runComparison() {
                 datasets: [
                     {
                         label: 'Client A',
-                        data: [{ x: beta1, y: (beta1 * 8) + (Math.random()*5), r: 15 }], // Simulated CAPM-like return
+                        data: [{ x: beta1, y: (beta1 * 8) + (Math.random()*5), r: 15 }],
                         backgroundColor: '#3b82f6'
                     },
                     {
@@ -769,7 +1021,6 @@ async function executeTrade(e) {
     loadGlobalContext();
 }
 
-// --- Sell Modal ---
 function openSellModal(holdingId) {
     const holding = currentHoldings.find(h => h.holdingId === holdingId);
     if (!holding) return;
@@ -839,7 +1090,6 @@ async function executeSellFromModal() {
     }
 }
 
-// --- Asset Detail Modal ---
 function closeAssetDetail() {
     const modal = document.getElementById('assetModal');
     if (modal) modal.style.display = 'none';
@@ -852,7 +1102,6 @@ async function openAssetDetail(holdingId) {
     if (!holding) return;
     currentAssetHoldingId = holdingId;
 
-    // Header and KPIs
     const invested = holding.avgBuyPrice * holding.quantity;
     const current = holding.curPrice * holding.quantity;
     const pnlAbs = current - invested;
@@ -884,7 +1133,6 @@ async function openAssetDetail(holdingId) {
     setText('assetAvgPrice', fmtUSD(holding.avgBuyPrice));
     setText('assetCategory', holding.asset.category || '-');
 
-    // Wire buttons
     const addBtn = document.getElementById('assetAddBtn');
     if (addBtn) {
         addBtn.onclick = () => {
@@ -894,7 +1142,8 @@ async function openAssetDetail(holdingId) {
                 // Match by data-symbol attribute populated during fetchAssets()
                 for (const opt of sel.options) {
                     if (opt.getAttribute('data-symbol') === holding.asset.symbol) {
-                        sel.value = opt.value; break;
+                        sel.value = opt.value;
+                        break;
                     }
                 }
             }
@@ -905,16 +1154,13 @@ async function openAssetDetail(holdingId) {
         exitBtn.onclick = () => sellAsset(holding.holdingId);
     }
 
-    // Show modal first
     const modal = document.getElementById('assetModal');
     if (modal) modal.style.display = 'block';
 
-    // Render charts
     await renderAssetDetailCharts(holding);
 }
 
 async function renderAssetDetailCharts(holding) {
-    // Trend: try backend endpoint, fallback to synthetic
     let labels = [];
     let series = [];
     try {
@@ -926,7 +1172,7 @@ async function renderAssetDetailCharts(holding) {
                 series = data.prices;
             }
         }
-    } catch(e) { /* ignore, fallback below */ }
+    } catch(e) {}
 
     if (series.length === 0) {
         const s = generateSyntheticSeries(holding.avgBuyPrice || holding.curPrice || 100, 52);
@@ -957,7 +1203,6 @@ async function renderAssetDetailCharts(holding) {
         });
     }
 
-    // Breakdown doughnut: asset vs rest of portfolio
     const total = currentHoldings.reduce((acc, h) => acc + h.mktValue, 0);
     const me = holding.mktValue;
     const others = Math.max(total - me, 0);
@@ -987,9 +1232,9 @@ function generateSyntheticSeries(base, points) {
     let price = base;
     for (let i = points - 1; i >= 0; i--) {
         const d = new Date();
-        d.setDate(d.getDate() - i * 7); // weekly points for 52 weeks
+        d.setDate(d.getDate() - i * 7);
         labels.push(d.toLocaleDateString());
-        const move = (Math.random() * 0.06) - 0.03; // +/-3%
+        const move = (Math.random() * 0.06) - 0.03;
         price = Math.max(0.1, price * (1 + move));
         values.push(Number(price.toFixed(2)));
     }
@@ -998,3 +1243,71 @@ function generateSyntheticSeries(base, points) {
 
 function setText(id, text) { const el = document.getElementById(id); if (el) el.innerText = text; }
 function fmtUSD(n) { return (n||0).toLocaleString('en-US', { style:'currency', currency:'USD' }); }
+
+function exportHoldingsCSV() {
+    if (currentHoldings.length === 0) {
+        alert('No holdings to export');
+        return;
+    }
+    
+    const headers = ['Symbol', 'Asset Name', 'Category', 'Quantity', 'Avg Buy Price', 'Market Price', 'Market Value', 'P&L ($)', 'P&L (%)'];
+    const rows = currentHoldings.map(h => [
+        h.asset.symbol || '',
+        h.asset.assetName || '',
+        h.asset.category || '',
+        h.quantity || 0,
+        (h.avgBuyPrice || 0).toFixed(2),
+        (h.curPrice || 0).toFixed(2),
+        (h.mktValue || 0).toFixed(2),
+        (h.pnl || 0).toFixed(2),
+        (h.pnlPct || 0).toFixed(2)
+    ]);
+    
+    const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `holdings_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function exportHistoryCSV() {
+    if (historyLog.length === 0) {
+        alert('No trade history to export');
+        return;
+    }
+    
+    const headers = ['Date', 'Symbol', 'Type', 'Quantity', 'Buy Price', 'Sell Price', 'Realized P&L'];
+    const rows = historyLog.map(tx => [
+        tx.date || '',
+        tx.symbol || '',
+        tx.type || 'SELL',
+        tx.qty || 0,
+        (tx.buy || 0).toFixed(2),
+        (tx.sell || 0).toFixed(2),
+        (tx.profit || 0).toFixed(2)
+    ]);
+    
+    const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `trade_history_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}

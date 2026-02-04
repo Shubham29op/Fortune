@@ -27,25 +27,19 @@ public class PortfolioService implements PortfolioServiceInterface {
 
     @Transactional
     public ClientHolding buyAsset(BuyAssetRequest request) {
-        // 1. Validate Client
         Client client = clientRepository.findById(request.getClientId())
                 .orElseThrow(() -> new RuntimeException("Client not found"));
 
-        // 2. Validate Asset
         Asset asset = assetRepository.findById(request.getAssetId())
                 .orElseThrow(() -> new RuntimeException("Asset not found"));
 
-        // 3. RULE CHECK: Max 5 Assets per Category
         long currentCount = holdingRepository.countByClientAndCategory(client.getClientId(), asset.getCategory());
-        
-        // Note: You can adjust the limit for Commodities (3) vs Stocks (5) here if you want
         int limit = asset.getCategory().name().equals("COMMODITY") ? 3 : 5;
 
         if (currentCount >= limit) {
             throw new RuntimeException("Limit Reached! You cannot hold more than " + limit + " " + asset.getCategory() + " assets.");
         }
 
-        // 4. Create the Holding
         ClientHolding holding = new ClientHolding();
         holding.setClient(client);
         holding.setAsset(asset);

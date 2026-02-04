@@ -7,9 +7,6 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.List;
 
-/**
- * Portfolio analysis results for chatbot context
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,8 +17,8 @@ public class PortfolioAnalysisResult {
     private BigDecimal unrealizedPnL;
     private BigDecimal realizedPnL;
     private Double portfolioBeta;
-    private Map<String, BigDecimal> categoryExposure; // Category -> Value
-    private Map<String, BigDecimal> categoryPercentage; // Category -> Percentage
+    private Map<String, BigDecimal> categoryExposure;
+    private Map<String, BigDecimal> categoryPercentage;
     private List<AssetPerformance> topPerformers;
     private List<AssetPerformance> underPerformers;
     private List<String> riskWarnings;

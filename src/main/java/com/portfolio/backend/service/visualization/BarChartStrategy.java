@@ -3,9 +3,6 @@ package com.portfolio.backend.service.visualization;
 import com.portfolio.backend.dto.chatbot.VisualizationMetadata;
 import org.springframework.stereotype.Component;
 
-/**
- * Strategy for explaining bar charts (comparisons)
- */
 @Component
 public class BarChartStrategy implements VisualizationExplanationStrategy {
     
