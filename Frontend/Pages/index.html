@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORTUNE | Quantitative Analyst Terminal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../Css/style.css">
+
+    <link rel="stylesheet" href="../Css/style.css">
+    <link rel="stylesheet" href="../Css/chatbot.css">
+
+</head>
+<body>
+
+    <div class="ticker-wrap">
+        <div class="ticker" id="tickerTape">
+            </div>
+    </div>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-layer-group"></i> FORTUNE <span class="pro-badge">PRO</span>
+            </div>
+            
+            <nav class="nav-menu">
+                <p class="nav-label">PORTFOLIO MGMT</p>
+                <ul>
+                    <li class="active" onclick="switchPage('dashboard')"><i class="fa-solid fa-chart-pie"></i> Dashboard</li>
+                    <li onclick="switchPage('holdings')"><i class="fa-solid fa-briefcase"></i> Active Holdings</li>
+                    <li onclick="switchPage('history')"><i class="fa-solid fa-clock-rotate-left"></i> Trade History</li>
+                </ul>
+
+                <p class="nav-label">RISK & ANALYTICS</p>
+                <ul>
+                    <li onclick="switchPage('risk')"><i class="fa-solid fa-bolt"></i> Risk Profile (VaR)</li>
+                    <li onclick="switchPage('compare')"><i class="fa-solid fa-people-arrows"></i> Client Alpha</li>
+                </ul>
+
+                <p class="nav-label">ADMIN</p>
+                <ul>
+                    <li onclick="switchPage('onboard')"><i class="fa-solid fa-user-plus"></i> Onboard Client</li>
+                </ul>
+            </nav>
+
+            <div class="watchlist-widget">
+                <div class="wl-header">
+                    <span>MY WATCHLIST</span>
+                    <i class="fa-solid fa-plus add-wl-btn" onclick="openWatchlistModal()"></i>
+                </div>
+                <div id="watchlistContainer" class="wl-items">
+                    </div>
+            </div>
+
+            <div class="market-status">
+                <div class="status-dot live"></div> Market Open
+                <small id="marketTime">00:00:00</small>
+            </div>
+        </aside>
+
+        <main class="workspace">
+            
+            <div class="control-bar">
+                <div class="selector-group">
+                    <label>Active Client Account</label>
+                    <select id="globalClientSelect" onchange="loadGlobalContext()">
+                        <option value="">Loading Clients...</option>
+                    </select>
+                </div>
+                <div class="quick-stats">
+                    <span>CASH: <b style="color:white">$45,200.00</b></span>
+                    <span>MARGIN: <b style="color:#f59e0b">USED</b></span>
+                </div>
+                <div class="quick-actions">
+                    <button class="btn-trade" onclick="openTradeModal('BUY')">BUY</button>
+                    <button class="btn-trade sell" onclick="openTradeModal('SELL')">SELL</button>
+                </div>
+            </div>
+
+            <section id="dashboard" class="page-view active">
+                <div class="kpi-row">
+                    <div class="kpi-card">
+                        <span class="kpi-label">Total AUM (Net Worth)</span>
+                        <h2 id="kpiNetWorth">$0.00</h2>
+                        <small class="neutral">Assets Under Management</small>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Invested Capital</span>
+                        <h2 id="kpiInvested">$0.00</h2>
+                        <small class="neutral">Cost Basis</small>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Unrealized P&L</span>
+                        <h2 id="kpiUnrealized">$0.00</h2>
+                        <span class="badge" id="kpiUnrealizedBadge">0.00%</span>
+                    </div>
+                    <div class="kpi-card" style="border-left: 3px solid #3b82f6;">
+                        <span class="kpi-label">Realized Profit (Booked)</span>
+                        <h2 id="kpiRealized">$0.00</h2>
+                        <small class="neutral">Total Locked Gains</small>
+                    </div>
+                </div>
+
+                <div class="chart-grid">
+                    <div class="panel large">
+                        <div class="panel-header">
+                            <h3>Performance Trend</h3>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="mainChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header"><h3>Allocation</h3></div>
+                        <div class="chart-wrapper">
+                            <canvas id="allocationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="holdings" class="page-view">
+                <div class="panel full-height">
+                    <div class="panel-header">
+                        <h3>Active Positions</h3>
+                    </div>
+                    <div class="table-container">
+                        <table class="trade-table">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th>Asset Name</th>
+                                    <th>Qty</th>
+                                    <th>Avg Price</th>
+                                    <th>Mkt Price</th>
+                                    <th>Mkt Value</th>
+                                    <th>P&L ($)</th>
+                                    <th>P&L (%)</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="holdingsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="history" class="page-view">
+                <div class="panel full-height">
+                    <div class="panel-header">
+                        <h3>Realized Trade History</h3>
+                        <button class="btn-icon" onclick="clearHistory()">Clear History</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="trade-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Symbol</th>
+                                    <th>Type</th>
+                                    <th>Qty</th>
+                                    <th>Buy Price</th>
+                                    <th>Sell Price</th>
+                                    <th>Realized P&L</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTable">
+                                <tr><td colspan="7" style="text-align:center; color:#666;">No trades recorded yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="risk" class="page-view">
+                <div class="panel-header" style="margin-bottom:20px;">
+                   <h2>Portfolio Risk Analytics</h2>
+                </div>
+                <div id="riskContent">
+                    <div class="panel"><p>Select a client to calculate Beta and Value at Risk (VaR).</p></div>
+                </div>
+            </section>
+            
+            <section id="compare" class="page-view">
+                <div class="control-bar" style="margin-bottom: 10px;">
+                    <div class="row" style="gap: 20px; align-items: flex-end;">
+                        <div class="selector-group">
+                            <label>Client A (Benchmark)</label>
+                            <select id="compClient1"></select>
+                        </div>
+                        <div class="selector-group">
+                            <label>Client B (Challenger)</label>
+                            <select id="compClient2"></select>
+                        </div>
+                        <button class="btn-trade" onclick="runComparison()">COMPARE</button>
+                    </div>
+                </div>
+                <div class="chart-grid">
+                    <div class="panel"><h3>Total Value Comparison</h3><div class="chart-wrapper"><canvas id="compValueChart"></canvas></div></div>
+                    <div class="panel"><h3>Risk/Return Scatter</h3><div class="chart-wrapper"><canvas id="compScatterChart"></canvas></div></div>
+                </div>
+            </section>
+
+            <section id="onboard" class="page-view">
+                <div class="panel" style="max-width: 500px; margin: 50px auto;">
+                    <h3>New Client Onboarding</h3>
+                    <form onsubmit="handleOnboard(event)">
+                        <div class="input-group"><label>Full Name</label><input type="text" id="newClientName" required></div>
+                        <div class="input-group"><label>Email</label><input type="email" id="newClientEmail" required></div>
+                        <button type="submit" class="btn-exec">CREATE PROFILE</button>
+                    </form>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+   <div id="tradeModal" class="modal-overlay" style="display: none;">
+    <div class="trade-ticket">
+        <div class="ticket-header">
+            <h3 id="modalTitle">NEW ORDER</h3>
+            <span class="close-btn" onclick="closeModal('tradeModal')">&times;</span>
+        </div>
+        <form onsubmit="executeTrade(event)">
+            <div class="input-group">
+                <label>Asset Symbol</label>
+                <select id="tradeAsset" required></select>
+            </div>
+            <div class="row">
+                <div class="input-group"><label>Quantity</label><input type="number" id="tradeQty" required></div>
+                <div class="input-group"><label>Price</label><input type="number" id="tradePrice" required></div>
+            </div>
+            <button type="submit" class="btn-exec">SUBMIT</button>
+        </form>
+    </div>
+</div>
+
+<div id="wlModal" class="modal-overlay" style="display: none;">
+    <div class="trade-ticket" style="width: 300px;">
+        <div class="ticket-header">
+            <h3>Add to Watchlist</h3>
+            <span class="close-btn" onclick="closeModal('wlModal')">&times;</span>
+        </div>
+        <div class="input-group">
+            <label>Select Asset</label>
+            <select id="wlAssetSelect"></select>
+        </div>
+        <button class="btn-exec" onclick="addToWatchlist()">ADD TO TRACKER</button>
+    </div>
+</div>
+
+<script src="../JavaScriptCode/app.js"></script>
+
+    <script src="../JavaScriptCode/app.js"></script>
+    <script src="../JavaScriptCode/chatbot.js"></script>
+
+</body>
+</html>
