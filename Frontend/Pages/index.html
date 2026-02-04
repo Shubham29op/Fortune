@@ -270,6 +270,65 @@
         </div>
     </div>
 
+    <!-- Asset Detail Modal -->
+    <div id="assetModal" class="modal-overlay" style="display:none;">
+        <div class="trade-ticket" style="max-width: 900px; width: 90%;">
+            <div class="ticket-header">
+                <h3 id="assetTitle">ASSET</h3>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span id="assetLtp" style="font-weight:bold; color:var(--text-main)">$0.00</span>
+                    <span id="assetDelta" class="badge">0.00%</span>
+                    <span class="close-btn" onclick="closeAssetDetail()">&times;</span>
+                </div>
+            </div>
+
+            <div class="kpi-row" style="margin-top:10px;">
+                <div class="kpi-card">
+                    <span class="kpi-label">Invested</span>
+                    <h2 id="assetInvested">$0.00</h2>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Current</span>
+                    <h2 id="assetCurrent">$0.00</h2>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">P&L</span>
+                    <h2 id="assetPnL">$0.00</h2>
+                    <span id="assetPnLPct" class="badge">0.00%</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Qty</span>
+                    <h2 id="assetQty">0</h2>
+                    <small class="neutral">Avg: <span id="assetAvgPrice">$0.00</span></small>
+                </div>
+                <div class="kpi-card" style="border-left:3px solid var(--primary);">
+                    <span class="kpi-label">Category</span>
+                    <h2 id="assetCategory">-</h2>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin:10px 0;">
+                <button id="assetAddBtn" class="btn-trade">ADD</button>
+                <button id="assetExitBtn" class="btn-trade sell">EXIT</button>
+            </div>
+
+            <div class="chart-grid">
+                <div class="panel large">
+                    <div class="panel-header"><h3>Trend (52 weeks)</h3></div>
+                    <div class="chart-wrapper" style="height:280px;">
+                        <canvas id="assetTrendChart"></canvas>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><h3>Portfolio Share</h3></div>
+                    <div class="chart-wrapper" style="height:280px;">
+                        <canvas id="assetShareChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <script src="../JavaScriptCode/app.js"></script>
     <script src="../JavaScriptCode/chatbot.js"></script>

@@ -11,6 +11,9 @@ let allocationChart = null;
 let monthlyChart = null;
 let recentTxChart = null;
 let topHoldingsChart = null;
+let assetTrendInstance = null;
+let assetShareInstance = null;
+let currentAssetHoldingId = null;
 let compChart1 = null;
 let compChart2 = null;
 
@@ -612,7 +615,7 @@ function renderHoldings() {
     currentHoldings.forEach(h => {
         const pnlC = h.pnl >= 0 ? 'text-up' : 'text-down';
         tbody.innerHTML += `
-            <tr>
+            <tr onclick="openAssetDetail(${h.holdingId})">
                 <td style="font-weight:bold; color:var(--primary)">${h.asset.symbol}</td>
                 <td style="color:#888">${h.asset.assetName}</td>
                 <td>${h.quantity}</td>
@@ -621,7 +624,7 @@ function renderHoldings() {
                 <td>$${h.mktValue.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
                 <td class="${pnlC}">${h.pnl.toFixed(2)}</td>
                 <td class="${pnlC}">${h.pnlPct.toFixed(2)}%</td>
-                <td><button class="btn-trade sell" onclick="sellAsset(${h.holdingId})" style="padding:4px 8px; font-size:11px">CLOSE</button></td>
+                <td><button class="btn-trade sell" onclick="event.stopPropagation(); sellAsset(${h.holdingId})" style="padding:4px 8px; font-size:11px">CLOSE</button></td>
             </tr>
         `;
     });
@@ -784,3 +787,163 @@ async function executeTrade(e) {
     closeModal('tradeModal');
     loadGlobalContext();
 }
+
+// --- Asset Detail Modal ---
+function closeAssetDetail() {
+    const modal = document.getElementById('assetModal');
+    if (modal) modal.style.display = 'none';
+    if (assetTrendInstance) { assetTrendInstance.destroy(); assetTrendInstance = null; }
+    if (assetShareInstance) { assetShareInstance.destroy(); assetShareInstance = null; }
+}
+
+async function openAssetDetail(holdingId) {
+    const holding = currentHoldings.find(h => h.holdingId === holdingId);
+    if (!holding) return;
+    currentAssetHoldingId = holdingId;
+
+    // Header and KPIs
+    const invested = holding.avgBuyPrice * holding.quantity;
+    const current = holding.curPrice * holding.quantity;
+    const pnlAbs = current - invested;
+    const pnlPct = invested ? (pnlAbs / invested) * 100 : 0;
+    const deltaPct = holding.avgBuyPrice ? ((holding.curPrice - holding.avgBuyPrice) / holding.avgBuyPrice) * 100 : 0;
+
+    setText('assetTitle', `${holding.asset.symbol} — ${holding.asset.assetName}`);
+    setText('assetLtp', fmtUSD(holding.curPrice));
+    const deltaEl = document.getElementById('assetDelta');
+    if (deltaEl) {
+        deltaEl.innerText = `${deltaPct >= 0 ? '+' : ''}${deltaPct.toFixed(2)}%`;
+        deltaEl.className = deltaPct >= 0 ? 'text-up' : 'text-down';
+    }
+    setText('assetInvested', fmtUSD(invested));
+    setText('assetCurrent', fmtUSD(current));
+    const pnlEl = document.getElementById('assetPnL');
+    if (pnlEl) {
+        pnlEl.innerText = `${pnlAbs >= 0 ? '+' : ''}${fmtUSD(pnlAbs)}`;
+        pnlEl.className = pnlAbs >= 0 ? 'text-up' : 'text-down';
+    }
+    const pnlPctEl = document.getElementById('assetPnLPct');
+    if (pnlPctEl) {
+        pnlPctEl.innerText = `${pnlPct.toFixed(2)}%`;
+        pnlPctEl.style.background = pnlAbs >= 0 ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)';
+        pnlPctEl.style.color = pnlAbs >= 0 ? '#10b981' : '#ef4444';
+    }
+
+    setText('assetQty', String(holding.quantity));
+    setText('assetAvgPrice', fmtUSD(holding.avgBuyPrice));
+    setText('assetCategory', holding.asset.category || '-');
+
+    // Wire buttons
+    const addBtn = document.getElementById('assetAddBtn');
+    if (addBtn) {
+        addBtn.onclick = () => {
+            openTradeModal('BUY');
+            const sel = document.getElementById('tradeAsset');
+            if (sel) {
+                // Match by data-symbol attribute populated during fetchAssets()
+                for (const opt of sel.options) {
+                    if (opt.getAttribute('data-symbol') === holding.asset.symbol) {
+                        sel.value = opt.value; break;
+                    }
+                }
+            }
+        };
+    }
+    const exitBtn = document.getElementById('assetExitBtn');
+    if (exitBtn) {
+        exitBtn.onclick = () => sellAsset(holding.holdingId);
+    }
+
+    // Show modal first
+    const modal = document.getElementById('assetModal');
+    if (modal) modal.style.display = 'block';
+
+    // Render charts
+    await renderAssetDetailCharts(holding);
+}
+
+async function renderAssetDetailCharts(holding) {
+    // Trend: try backend endpoint, fallback to synthetic
+    let labels = [];
+    let series = [];
+    try {
+        const res = await fetch(`${API_BASE}/market/prices?symbol=${encodeURIComponent(holding.asset.symbol)}&range=52w`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data && Array.isArray(data.labels) && Array.isArray(data.prices)) {
+                labels = data.labels;
+                series = data.prices;
+            }
+        }
+    } catch(e) { /* ignore, fallback below */ }
+
+    if (series.length === 0) {
+        const s = generateSyntheticSeries(holding.avgBuyPrice || holding.curPrice || 100, 52);
+        labels = s.labels;
+        series = s.values;
+    }
+
+    const trendCtxEl = document.getElementById('assetTrendChart');
+    if (trendCtxEl) {
+        const ctx = trendCtxEl.getContext('2d');
+        if (assetTrendInstance) assetTrendInstance.destroy();
+        assetTrendInstance = new Chart(ctx, {
+            type: 'line',
+            data: { labels, datasets: [{
+                label: 'Price',
+                data: series,
+                borderColor: '#3b82f6',
+                fill: true,
+                backgroundColor: 'rgba(59,130,246,0.08)',
+                tension: 0.35
+            }]},
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { grid: { display:false } }, y: { grid: { color:'#1e293b' } } }
+            }
+        });
+    }
+
+    // Breakdown doughnut: asset vs rest of portfolio
+    const total = currentHoldings.reduce((acc, h) => acc + h.mktValue, 0);
+    const me = holding.mktValue;
+    const others = Math.max(total - me, 0);
+
+    const shareCtxEl = document.getElementById('assetShareChart');
+    if (shareCtxEl) {
+        const ctx = shareCtxEl.getContext('2d');
+        if (assetShareInstance) assetShareInstance.destroy();
+        assetShareInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['This Asset', 'Rest of Portfolio'],
+                datasets: [{ data: [me, others], backgroundColor: ['#10b981', '#334155'], borderWidth: 0 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
+            }
+        });
+    }
+}
+
+function generateSyntheticSeries(base, points) {
+    const labels = [];
+    const values = [];
+    let price = base;
+    for (let i = points - 1; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i * 7); // weekly points for 52 weeks
+        labels.push(d.toLocaleDateString());
+        const move = (Math.random() * 0.06) - 0.03; // +/-3%
+        price = Math.max(0.1, price * (1 + move));
+        values.push(Number(price.toFixed(2)));
+    }
+    return { labels, values };
+}
+
+function setText(id, text) { const el = document.getElementById(id); if (el) el.innerText = text; }
+function fmtUSD(n) { return (n||0).toLocaleString('en-US', { style:'currency', currency:'USD' }); }

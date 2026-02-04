@@ -251,6 +251,9 @@ select { background: #000; color: white; border: 1px solid var(--border); paddin
 .page-view { display: none; }
 .page-view.active { display: block; }
 
+#holdings .trade-table tbody tr { cursor: pointer; }
+#holdings .trade-table tbody tr:hover { background: rgba(255,255,255,0.04); }
+
 /* --- ASSET WINDOW STYLES --- */
 .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
