@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Service
-public class PortfolioService {
+public class PortfolioService implements PortfolioServiceInterface {
 
     @Autowired
     private ClientHoldingRepository holdingRepository;

@@ -1,0 +1,56 @@
+PORTFOLIO MANAGEMENT RULES & CONSTRAINTS
+
+ASSET LIMIT RULES:
+- Maximum 5 assets per category for NSE (Equity) and MF (Mutual Fund)
+- Maximum 3 assets per category for COMMODITY
+- These limits prevent over-diversification and maintain focus
+- Exceeding limits requires selling existing positions first
+
+DIVERSIFICATION PRINCIPLES:
+- Spread investments across at least 2-3 asset categories
+- Avoid putting more than 50% in any single category
+- Within categories, diversify across different assets
+- Balance between diversification and concentration for optimal returns
+
+RISK MANAGEMENT RULES:
+- Monitor portfolio beta weekly
+- Review concentration risk monthly
+- Alert on single asset > 20% of portfolio
+- Alert on category > 50% of portfolio
+- Alert on commodity exposure > 30%
+
+PERFORMANCE MONITORING:
+- Review portfolio performance monthly
+- Compare against benchmark (NIFTY50 for Indian markets)
+- Track unrealized vs. realized P&L separately
+- Monitor top and bottom performers regularly
+
+REBALANCING GUIDELINES:
+- Rebalance when allocation drifts > 10% from target
+- Consider tax implications before selling
+- Maintain target beta range based on risk tolerance
+- Rebalance gradually, not all at once
+
+PORTFOLIO CONSTRUCTION BEST PRACTICES:
+- Start with asset allocation target (e.g., 40% NSE, 30% MF, 30% Commodity)
+- Build positions gradually
+- Review and adjust quarterly
+- Keep cash reserve (5-10%) for opportunities
+
+COMPLIANCE & CONSTRAINTS:
+- No automatic trade execution (manual approval required)
+- All trades must be reviewed by portfolio manager
+- Maintain audit trail of all decisions
+- Document rationale for significant changes
+
+CLIENT-SPECIFIC CONSIDERATIONS:
+- Risk tolerance varies by client
+- Investment horizon affects asset selection
+- Tax considerations impact trading decisions
+- Client goals determine portfolio strategy
+
+MONITORING CHECKLIST:
+- Weekly: Check portfolio value, unrealized P&L
+- Monthly: Review allocation, concentration risk
+- Quarterly: Full portfolio review, rebalancing assessment
+- Annually: Comprehensive performance analysis
