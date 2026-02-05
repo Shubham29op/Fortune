@@ -95,33 +95,33 @@ python3 -m http.server 8000
 
 ## Features
 
-### ✅ Portfolio Analysis
+###  Portfolio Analysis
 - Fetches portfolio data from database
 - Calculates Beta, VaR, concentration risk
 - Identifies top/underperformers
 - Generates risk warnings
 
-### ✅ Visualization Intelligence
+###  Visualization Intelligence
 - Explains charts when clicked
 - Context-aware explanations
 - Supports multiple chart types (line, doughnut, bar, scatter)
 - Extensible via Strategy pattern
 
-### ✅ RAG Knowledge Base
+### RAG Knowledge Base
 - Financial definitions
 - Risk heuristics
 - Portfolio rules
 - Visualization semantics
 - Located in `src/main/resources/knowledge/`
 
-### ✅ LLM Integration
+###  LLM Integration
 - Gemini API with fallback
 - Multiple API key support
 - Automatic retry on failures
 - Rate limit handling
 - Confidence estimation
 
-### ✅ Enterprise Standards
+### Enterprise Standards
 - Clear headings and bullet points
 - Confidence indicators (LOW/MEDIUM/HIGH)
 - No financial advice language
