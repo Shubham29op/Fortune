@@ -2,50 +2,40 @@
 
 ```mermaid
 erDiagram
-    CUSTOMERS ||--o{ PORTFOLIOS : has
-    CUSTOMERS ||--o{ TRANSACTIONS : makes
-    PORTFOLIOS ||--o{ HOLDINGS : contains
+    MANAGERS ||--o{ CLIENTS : manages
+    CLIENTS ||--o{ CLIENT_HOLDINGS : has
+    ASSETS ||--o{ CLIENT_HOLDINGS : "traded as"
     
-    CUSTOMERS {
-        bigint id PK
-        varchar client_id UK
-        varchar name
-        varchar email
-        enum type
-        enum risk_level
-        timestamp join_date
+    MANAGERS {
+        bigint manager_id PK
+        varchar full_name
+        varchar email UK
+        varchar password
     }
     
-    PORTFOLIOS {
-        bigint id PK
-        bigint customer_id FK
+    CLIENTS {
+        bigint client_id PK
+        bigint manager_id FK
+        varchar full_name
+        varchar email
         timestamp created_at
     }
     
-    HOLDINGS {
-        bigint id PK
-        bigint portfolio_id FK
+    ASSETS {
+        bigint asset_id PK
+        varchar symbol UK
         varchar asset_name
         enum category
-        decimal quantity
-        decimal avg_price
-        decimal current_price
-        decimal invested_amount
-        decimal current_value
+        text description
     }
     
-    TRANSACTIONS {
-        bigint id PK
-        varchar transaction_id UK
-        bigint customer_id FK
-        enum type
-        varchar asset
-        enum category
+    CLIENT_HOLDINGS {
+        bigint holding_id PK
+        bigint client_id FK
+        bigint asset_id FK
         decimal quantity
-        decimal price
-        decimal amount
-        enum status
-        timestamp timestamp
+        decimal avg_buy_price
+        date buy_date
     }
 ```
 
