@@ -19,6 +19,7 @@ The chatbot is an **enterprise-grade AI assistant** that:
 ---
 
 ## 2. High-Level Architecture
+'''mermaid
 graph LR
     subgraph Client_Interface [Frontend Layer]
         User((User))
@@ -61,7 +62,7 @@ graph LR
     style Vector fill:#34A853,stroke:#fff,color:#fff
     style API fill:#FBBC05,stroke:#fff
     style User fill:#EA4335,stroke:#fff,color:#fff
-
+'''
 ## 3. Backend Components
 
 ### 3.1 Controller
