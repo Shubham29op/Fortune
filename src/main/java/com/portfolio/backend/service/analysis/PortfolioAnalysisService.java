@@ -13,10 +13,6 @@ import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Service for analyzing portfolio data
- * Provides read-only analytical insights
- */
 @Service
 @Slf4j
 public class PortfolioAnalysisService implements PortfolioAnalysisServiceInterface {
@@ -24,16 +20,12 @@ public class PortfolioAnalysisService implements PortfolioAnalysisServiceInterfa
     @Autowired
     private ClientHoldingRepository holdingRepository;
     
-    // Risk weights for Beta calculation
     private static final Map<AssetCategory, Double> CATEGORY_WEIGHTS = Map.of(
         AssetCategory.COMMODITY, 1.5,
         AssetCategory.NSE, 1.0,
         AssetCategory.MF, 0.7
     );
     
-    /**
-     * Analyze portfolio for a specific client
-     */
     public PortfolioAnalysisResult analyzePortfolio(Long clientId, Map<String, BigDecimal> currentPrices) {
         List<ClientHolding> holdings = holdingRepository.findByClient_ClientId(clientId);
         
@@ -44,7 +36,6 @@ public class PortfolioAnalysisService implements PortfolioAnalysisServiceInterfa
         PortfolioAnalysisResult result = new PortfolioAnalysisResult();
         result.setClientId(clientId);
         
-        // Calculate metrics
         BigDecimal totalInvested = BigDecimal.ZERO;
         BigDecimal totalValue = BigDecimal.ZERO;
         BigDecimal weightedBetaSum = BigDecimal.ZERO;
@@ -56,7 +47,7 @@ public class PortfolioAnalysisService implements PortfolioAnalysisServiceInterfa
             BigDecimal invested = holding.getAvgBuyPrice().multiply(holding.getQuantity());
             BigDecimal currentPrice = currentPrices.getOrDefault(
                 holding.getAsset().getSymbol(), 
-                holding.getAvgBuyPrice() // Fallback to buy price if current price not available
+                holding.getAvgBuyPrice()
             );
             BigDecimal marketValue = currentPrice.multiply(holding.getQuantity());
             BigDecimal pnl = marketValue.subtract(invested);
@@ -71,11 +62,9 @@ public class PortfolioAnalysisService implements PortfolioAnalysisServiceInterfa
             categoryValue.put(category, categoryValue.getOrDefault(category, BigDecimal.ZERO).add(marketValue));
             categoryInvested.put(category, categoryInvested.getOrDefault(category, BigDecimal.ZERO).add(invested));
             
-            // Weighted beta calculation
             Double weight = CATEGORY_WEIGHTS.getOrDefault(category, 1.0);
             weightedBetaSum = weightedBetaSum.add(marketValue.multiply(BigDecimal.valueOf(weight)));
             
-            // Performance tracking
             PortfolioAnalysisResult.AssetPerformance perf = new PortfolioAnalysisResult.AssetPerformance();
             perf.setSymbol(holding.getAsset().getSymbol());
             perf.setAssetName(holding.getAsset().getAssetName());
@@ -85,14 +74,12 @@ public class PortfolioAnalysisService implements PortfolioAnalysisServiceInterfa
             performances.add(perf);
         }
         
-        // Calculate portfolio beta
         Double portfolioBeta = totalValue.compareTo(BigDecimal.ZERO) > 0
             ? weightedBetaSum.divide(totalValue, 4, RoundingMode.HALF_UP).doubleValue()
             : 1.0;
         
         BigDecimal unrealizedPnL = totalValue.subtract(totalInvested);
         
-        // Set results
         result.setTotalValue(totalValue);
         result.setTotalInvested(totalInvested);
         result.setUnrealizedPnL(unrealizedPnL);
@@ -113,7 +100,6 @@ public class PortfolioAnalysisService implements PortfolioAnalysisServiceInterfa
         result.setCategoryExposure(categoryExposure);
         result.setCategoryPercentage(categoryPercentage);
         
-        // Top and underperformers
         List<PortfolioAnalysisResult.AssetPerformance> sortedPerf = performances.stream()
             .sorted((a, b) -> b.getPnlPercentage().compareTo(a.getPnlPercentage()))
             .collect(Collectors.toList());
@@ -124,7 +110,6 @@ public class PortfolioAnalysisService implements PortfolioAnalysisServiceInterfa
             .limit(3)
             .collect(Collectors.toList()));
         
-        // Risk warnings
         result.setRiskWarnings(generateRiskWarnings(result));
         result.setConcentrationAlerts(generateConcentrationAlerts(result));
         
@@ -186,9 +171,6 @@ public class PortfolioAnalysisService implements PortfolioAnalysisServiceInterfa
         return result;
     }
     
-    /**
-     * Generate human-readable portfolio summary for chatbot context
-     */
     public String generatePortfolioSummary(PortfolioAnalysisResult analysis) {
         StringBuilder summary = new StringBuilder();
         

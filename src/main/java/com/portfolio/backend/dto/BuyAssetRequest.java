@@ -8,5 +8,5 @@ public class BuyAssetRequest {
     private Long clientId;
     private Long assetId;
     private BigDecimal quantity;
-    private BigDecimal price; // The price at the moment of buying
+    private BigDecimal price;
 }

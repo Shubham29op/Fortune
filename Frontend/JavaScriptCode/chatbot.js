@@ -1,4 +1,3 @@
-// Chatbot Widget JavaScript
 const CHATBOT_API_BASE = "http://localhost:8080/api/chatbot";
 
 class ChatbotWidget {

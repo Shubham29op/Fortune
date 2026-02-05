@@ -9,10 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-/**
- * REST Controller for chatbot interactions
- * No authentication required (as per requirements)
- */
 @RestController
 @RequestMapping("/api/chatbot")
 @CrossOrigin(origins = "*")
@@ -21,14 +17,9 @@ public class ChatbotController {
     @Autowired
     private ChatbotServiceInterface chatbotService;
     
-    /**
-     * POST /api/chatbot/chat
-     * Main endpoint for chatbot interactions
-     */
     @PostMapping("/chat")
     public ResponseEntity<ChatResponse> chat(@RequestBody ChatRequest request) {
         try {
-            // Validate request
             if (request.getMessage() == null || request.getMessage().trim().isEmpty()) {
                 ChatResponse errorResponse = new ChatResponse();
                 errorResponse.setResponse("## Error\n\nPlease provide a message.");
@@ -49,10 +40,6 @@ public class ChatbotController {
         }
     }
     
-    /**
-     * GET /api/chatbot/health
-     * Health check endpoint
-     */
     @GetMapping("/health")
     public ResponseEntity<Map<String, String>> health() {
         return ResponseEntity.ok(Map.of("status", "healthy", "service", "chatbot"));

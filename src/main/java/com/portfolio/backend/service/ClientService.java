@@ -13,12 +13,10 @@ public class ClientService implements ClientServiceInterface {
     @Autowired
     private ClientRepository clientRepository;
 
-    // Retrieve all clients from the database
     public List<Client> getAllClients() {
         return clientRepository.findAll();
     }
 
-    // Save a new client to the database
     public Client addClient(Client client) {
         return clientRepository.save(client);
     }

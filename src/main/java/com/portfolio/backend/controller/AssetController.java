@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/assets") // This defines the URL
-@CrossOrigin(origins = "*")    // This allows your HTML frontend to connect
+@RequestMapping("/api/assets")
+@CrossOrigin(origins = "*")
 public class AssetController {
 
     @Autowired

@@ -3,9 +3,6 @@ package com.portfolio.backend.service.visualization;
 import com.portfolio.backend.dto.chatbot.VisualizationMetadata;
 import org.springframework.stereotype.Component;
 
-/**
- * Strategy for explaining doughnut/pie charts (allocation)
- */
 @Component
 public class DoughnutChartStrategy implements VisualizationExplanationStrategy {
     

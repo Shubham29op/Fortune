@@ -9,8 +9,5 @@ import java.util.List;
 
 @Repository
 public interface ClientRepository extends JpaRepository<Client, Long> {
-    
-    // This allows you to find all clients belonging to a specific manager
-    // (Useful for the dropdown menu later)
     List<Client> findByManagerId(Long managerId);
 }
