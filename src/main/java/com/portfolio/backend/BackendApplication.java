@@ -5,7 +5,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-// FORCE Spring to scan your specific package for Controllers and Services
 @ComponentScan(basePackages = "com.portfolio.backend")
 public class BackendApplication {
 

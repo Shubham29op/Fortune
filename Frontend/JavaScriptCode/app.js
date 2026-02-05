@@ -128,7 +128,7 @@ function updateDashboard() {
         totalUnrealized += h.pnl;
     });
 
-    const fmt = n => n.toLocaleString('en-US', {style:'currency', currency:'USD'});
+    const fmt = n => n.toLocaleString('en-US', {style:'currency', currency:'INR'});
 
     document.getElementById('kpiNetWorth').innerText = fmt(totalVal);
     document.getElementById('kpiInvested').innerText = fmt(totalInvested);
@@ -146,7 +146,7 @@ function updateDashboard() {
 function updateRealizedKPI() {
     const totalRealized = historyLog.reduce((sum, item) => sum + item.profit, 0);
     const el = document.getElementById('kpiRealized');
-    el.innerText = (totalRealized>=0?"+":"") + totalRealized.toLocaleString('en-US', {style:'currency', currency:'USD'});
+    el.innerText = (totalRealized>=0?"+":"") + totalRealized.toLocaleString('en-US', {style:'currency', currency:'INR'});
     el.className = totalRealized >= 0 ? "text-up" : "text-down";
 }
 
@@ -192,7 +192,7 @@ function calculateRiskProfile() {
     const contribRows = riskContributors.slice(0, 3).map(r => `
         <tr>
             <td style="color:var(--text-main)">${r.symbol}</td>
-            <td style="text-align:right">$${r.val.toLocaleString()}</td>
+            <td style="text-align:right">₹${r.val.toLocaleString()}</td>
             <td style="text-align:right; color:${r.beta > 1 ? '#ef4444' : '#10b981'}">${r.beta.toFixed(2)}</td>
             <td style="text-align:right; font-weight:bold">${((r.contrib / weightedBetaSum) * 100).toFixed(1)}%</td>
         </tr>
@@ -211,7 +211,7 @@ function calculateRiskProfile() {
             </div>
             <div class="kpi-card">
                 <span class="kpi-label">VaR (95% Daily)</span>
-                <h2 class="text-down">-$${(totalValue * 0.0165 * portfolioBeta).toFixed(2)}</h2>
+                <h2 class="text-down">-₹${(totalValue * 0.0165 * portfolioBeta).toFixed(2)}</h2>
                 <small class="neutral">Est. Max Daily Loss</small>
             </div>
             <div class="kpi-card">
@@ -278,7 +278,7 @@ function renderWatchlist() {
                     <small style="font-size:9px; color:#666">NYSE</small>
                 </div>
                 <div style="text-align:right">
-                    <div class="wl-price">$${item.price.toFixed(2)}</div>
+                    <div class="wl-price">₹${item.price.toFixed(2)}</div>
                     <small class="${color}" style="font-size:9px;">${arrow} ${item.change.toFixed(2)}%</small>
                 </div>
             </div>
@@ -310,9 +310,9 @@ function renderHistoryTable() {
                 <td style="font-weight:bold">${tx.symbol}</td>
                 <td><span style="background:#cf3030; color:white; font-size:10px; padding:2px 4px; border-radius:3px">SELL</span></td>
                 <td>${tx.qty}</td>
-                <td>$${tx.buy.toFixed(2)}</td>
-                <td>$${tx.sell.toFixed(2)}</td>
-                <td class="${color}" style="font-weight:bold">${tx.profit >= 0 ? '+' : ''}$${tx.profit.toFixed(2)}</td>
+                <td>₹${tx.buy.toFixed(2)}</td>
+                <td>₹${tx.sell.toFixed(2)}</td>
+                <td class="${color}" style="font-weight:bold">${tx.profit >= 0 ? '+' : ''}₹${tx.profit.toFixed(2)}</td>
             </tr>
         `;
     });
@@ -405,7 +405,7 @@ function renderHistoryCharts() {
                     tooltip: {
                         callbacks: {
                             label: (context) => {
-                                return `Profit: $${context.parsed.x.toFixed(2)}`;
+                                return `Profit: ₹${context.parsed.x.toFixed(2)}`;
                             }
                         }
                     }
@@ -497,7 +497,7 @@ function renderCharts() {
                         yAxis: 'Allocation Percentage',
                         calculatedMetrics: {
                             [label]: percentage + '%',
-                            'Total Value': '$' + total.toLocaleString()
+                            'Total Value': '₹' + total.toLocaleString()
                         }
                     });
                     if (window.chatbot.isOpen) {
@@ -555,7 +555,7 @@ function renderCharts() {
                         timeRange: '5 days',
                         hoverData: {
                             'Date': label,
-                            'Value': '$' + value.toLocaleString()
+                            'Value': '₹' + value.toLocaleString()
                         }
                     });
                     if (window.chatbot.isOpen) {
@@ -628,7 +628,7 @@ function renderCharts() {
                         yAxis: 'Realized P&L',
                         hoverData: {
                             'Month': label,
-                            'Realized P&L': '$' + value.toLocaleString()
+                            'Realized P&L': '₹' + value.toLocaleString()
                         }
                     });
 
@@ -715,7 +715,7 @@ function renderCharts() {
                         yAxis: 'Market Value',
                         hoverData: {
                             'Asset': label,
-                            'Market Value': '$' + value.toLocaleString()
+                            'Market Value': '₹' + value.toLocaleString()
                         }
                     });
 
@@ -757,9 +757,9 @@ function renderHoldings() {
                 <td style="font-weight:bold; color:var(--primary)">${h.asset.symbol}</td>
                 <td style="color:#888">${h.asset.assetName}</td>
                 <td>${h.quantity}</td>
-                <td>$${h.avgBuyPrice.toFixed(2)}</td>
-                <td style="font-weight:bold">$${h.curPrice.toFixed(2)}</td>
-                <td>$${h.mktValue.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+                <td>₹${h.avgBuyPrice.toFixed(2)}</td>
+                <td style="font-weight:bold">₹${h.curPrice.toFixed(2)}</td>
+                <td>₹${h.mktValue.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
                 <td class="${pnlC}">${h.pnl.toFixed(2)}</td>
                 <td class="${pnlC}">${h.pnlPct.toFixed(2)}%</td>
                 <td><button class="btn-trade sell" onclick="event.stopPropagation(); sellAsset(${h.holdingId})" style="padding:4px 8px; font-size:11px">CLOSE</button></td>
@@ -853,9 +853,9 @@ function renderHoldingsCharts() {
                                 const cat = categories[context.dataIndex];
                                 const data = categoryMap[cat];
                                 return [
-                                    `P&L: $${data.totalPnl.toFixed(2)}`,
+                                    `P&L: ₹${data.totalPnl.toFixed(2)}`,
                                     `Holdings: ${data.count}`,
-                                    `Value: $${data.totalValue.toFixed(2)}`
+                                    `Value: ₹${data.totalValue.toFixed(2)}`
                                 ];
                             }
                         }
@@ -1245,7 +1245,7 @@ function generateSyntheticSeries(base, points) {
 
 
 function setText(id, text) { const el = document.getElementById(id); if (el) el.innerText = text; }
-function fmtUSD(n) { return (n||0).toLocaleString('en-US', { style:'currency', currency:'USD' }); }
+function fmtUSD(n) { return (n||0).toLocaleString('en-US', { style:'currency', currency:'INR' }); }
 
 function exportHoldingsCSV() {
     if (currentHoldings.length === 0) {
@@ -1253,7 +1253,7 @@ function exportHoldingsCSV() {
         return;
     }
     
-    const headers = ['Symbol', 'Asset Name', 'Category', 'Quantity', 'Avg Buy Price', 'Market Price', 'Market Value', 'P&L ($)', 'P&L (%)'];
+    const headers = ['Symbol', 'Asset Name', 'Category', 'Quantity', 'Avg Buy Price', 'Market Price', 'Market Value', 'P&L (₹)', 'P&L (%)'];
     const rows = currentHoldings.map(h => [
         h.asset.symbol || '',
         h.asset.assetName || '',
