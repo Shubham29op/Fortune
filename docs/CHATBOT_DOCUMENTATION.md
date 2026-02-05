@@ -18,54 +18,11 @@ The chatbot is an **enterprise-grade AI assistant** that:
 
 ---
 
-## 2. High-Level Architecture
-'''mermaid
-graph LR
-    subgraph Client_Interface [Frontend Layer]
-        User((User))
-        Widget[Interactive Chatbot UI]
-    end
 
-    subgraph Security_Gateway [Orchestration Layer]
-        API[Spring Boot Controller]
-        Auth{Auth & Context}
-    end
 
-    subgraph AI_Engine [Intelligence Engine]
-        Service[Chatbot Service]
-        LLM[Gemini Pro / LLM]
-        Vector[(Vector DB / RAG)]
-    end
+## 2. Backend Components
 
-    subgraph Enterprise_Data [Data Layer]
-        SQL[(Portfolio DB)]
-        KB[Knowledge Base]
-    end
-
-    %% Flow
-    User -->|Queries| Widget
-    Widget -->|Secure Request| API
-    API --> Auth
-    Auth --> Service
-    
-    Service -->|1. Context Retrieval| SQL
-    Service -->|2. Semantic Search| Vector
-    Vector --- KB
-    
-    Service -->|3. Augmented Prompt| LLM
-    LLM -->|4. Insightful Response| Service
-    Service -->|5. Structured Output| Widget
-    Widget -->|Visualization| User
-
-    %% Styling
-    style LLM fill:#4285F4,stroke:#fff,color:#fff
-    style Vector fill:#34A853,stroke:#fff,color:#fff
-    style API fill:#FBBC05,stroke:#fff
-    style User fill:#EA4335,stroke:#fff,color:#fff
-'''
-## 3. Backend Components
-
-### 3.1 Controller
+### 2.1 Controller
 
 **File:** `src/main/java/com/portfolio/backend/controller/ChatbotController.java`
 
@@ -86,7 +43,7 @@ graph LR
 
 ---
 
-### 3.2 DTOs (Data Transfer Objects)
+### 2.2 DTOs (Data Transfer Objects)
 
 **Package:** `com.portfolio.backend.dto.chatbot`
 
@@ -101,7 +58,7 @@ All chatbot API request/response shapes are defined here; the frontend and contr
 
 ---
 
-### 3.3 ChatbotService (Orchestrator)
+### 2.3 ChatbotService (Orchestrator)
 
 **File:** `src/main/java/com/portfolio/backend/service/chatbot/ChatbotService.java`
 
@@ -137,7 +94,7 @@ All chatbot API request/response shapes are defined here; the frontend and contr
 
 ---
 
-### 3.4 LLMService (Gemini)
+### 2.4 LLMService (Gemini)
 
 **File:** `src/main/java/com/portfolio/backend/service/llm/LLMService.java`
 
@@ -170,7 +127,7 @@ All chatbot API request/response shapes are defined here; the frontend and contr
 
 ---
 
-### 3.5 RAGService
+### 2.5 RAGService
 
 **File:** `src/main/java/com/portfolio/backend/service/rag/RAGService.java`
 
@@ -196,7 +153,7 @@ RAG is **keyword-based**; it does not perform embedding or vector search.
 
 ---
 
-### 3.6 PortfolioAnalysisService
+### 2.6 PortfolioAnalysisService
 
 **File:** `src/main/java/com/portfolio/backend/service/analysis/PortfolioAnalysisService.java`
 
@@ -219,7 +176,7 @@ RAG is **keyword-based**; it does not perform embedding or vector search.
 
 ---
 
-### 3.7 Visualization Explanation (Strategy Pattern)
+### 2.7 Visualization Explanation (Strategy Pattern)
 
 **Package:** `com.portfolio.backend.service.visualization`
 
@@ -241,7 +198,7 @@ RAG is **keyword-based**; it does not perform embedding or vector search.
 
 ---
 
-### 3.8 Configuration
+### 2.8 Configuration
 
 **File:** `src/main/java/com/portfolio/backend/config/GeminiConfig.java`
 
@@ -257,9 +214,9 @@ RAG is **keyword-based**; it does not perform embedding or vector search.
 
 ---
 
-## 4. Frontend Components
+## 3. Frontend Components
 
-### 4.1 Floating Widget (chatbot.js)
+### 3.1 Floating Widget (chatbot.js)
 
 **File:** `Frontend/JavaScriptCode/chatbot.js`
 
@@ -284,7 +241,7 @@ RAG is **keyword-based**; it does not perform embedding or vector search.
 
 ---
 
-### 4.2 Chatbot CSS (chatbot.css)
+### 3.2 Chatbot CSS (chatbot.css)
 
 **File:** `Frontend/Css/chatbot.css`
 
@@ -295,7 +252,7 @@ RAG is **keyword-based**; it does not perform embedding or vector search.
 
 ---
 
-### 4.3 Integration in index.html
+### 3.3 Integration in index.html
 
 - In `<head>`: `<link rel="stylesheet" href="../Css/chatbot.css">`.
 - Before `</body>`: `<script src="../JavaScriptCode/chatbot.js"></script>` (after app.js).
@@ -303,7 +260,7 @@ RAG is **keyword-based**; it does not perform embedding or vector search.
 
 ---
 
-### 4.4 Chart → Chatbot (app.js)
+### 3.4 Chart → Chatbot (app.js)
 
 **File:** `Frontend/JavaScriptCode/app.js`
 
@@ -320,7 +277,7 @@ So “Explain this graph” is backed by **structured metadata** (chart type, ax
 
 ---
 
-## 5. End-to-End Request Flow
+## 4. End-to-End Request Flow
 
 1. User selects a client in “Active Client Account” (optional but recommended for portfolio answers).
 2. User opens the floating chat (and optionally maximizes it).
@@ -339,7 +296,7 @@ So “Explain this graph” is backed by **structured metadata** (chart type, ax
 
 ---
 
-## 6. Configuration Summary
+## 5. Configuration Summary
 
 | What | Where |
 |------|--------|
@@ -351,7 +308,7 @@ So “Explain this graph” is backed by **structured metadata** (chart type, ax
 
 ---
 
-## 7. Extending the Chatbot
+## 6. Extending the Chatbot
 
 - **New chart type:** Implement `VisualizationExplanationStrategy` and add it to the visualization package; Spring will pick it up.
 - **Richer RAG:** Add or edit files under `knowledge/` and extend `RAGService.retrieveContext()` (e.g. more keywords or file names).
@@ -360,7 +317,7 @@ So “Explain this graph” is backed by **structured metadata** (chart type, ax
 
 ---
 
-## 8. File Reference
+## 7. File Reference
 
 | Layer | Path |
 |-------|------|
