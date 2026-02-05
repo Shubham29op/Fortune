@@ -296,7 +296,44 @@ select { background: #000; color: white; border: 1px solid var(--border); paddin
 .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #666; }
 .close-btn:hover { color: #fff; }
 
-/* Quick stats theme-aware colors */
 .quick-stats span { color: var(--text-muted); }
 .stat-cash { color: var(--text-main); font-weight: 700; }
 .stat-margin { color: var(--accent); font-weight: 700; }
+
+.sidebar {
+    font-size: 15px;
+    color: #ffffff;
+}
+
+.sidebar .brand {
+    font-size: 20px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.sidebar .nav-label {
+    font-size: 12px;
+    color: #d1d5db;
+    letter-spacing: 1px;
+}
+
+.sidebar .nav-menu li,
+.sidebar .nav-menu li i {
+    font-size: 15px;
+    color: #ffffff;
+}
+
+.sidebar .market-status {
+    font-size: 13px;
+    color: #e5e7eb;
+}
+
+:root[data-theme="light"] .sidebar,
+:root[data-theme="light"] .sidebar * {
+    color: #020617;
+}
+
+:root[data-theme="light"] .sidebar .nav-label,
+:root[data-theme="light"] .sidebar .market-status {
+    color: #334155;
+}
