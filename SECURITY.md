@@ -40,4 +40,4 @@ Gemini API Safety: We utilize Google’s built-in safety filters to prevent the 
 
 Data Masking: Sensitive portfolio data is processed via our buildContext() service with strict PII (Personally Identifiable Information) filtering before being sent to the LLM.
 
-Code Scanning: We perform regular static analysis on our Spring Boot backend to catch common vulnerabilities (OWASP Top 10) early.
+Code Scanning: We perform regular static analysis on our Spring Boot backend to catch common vulnerabilities  early.
