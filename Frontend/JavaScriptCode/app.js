@@ -300,7 +300,7 @@ function renderWatchlist() {
 }
 
 function saveWatchlist() { localStorage.setItem('mgr_watchlist', JSON.stringify(watchlist)); }
-function openWatchlistModal() { document.getElementById('wlModal').style.display = 'block'; }
+function openWatchlistModal() { document.getElementById('wlModal').style.display = 'flex'; }
 
 // --- Realized Profit & History Logic ---
 function sellAsset(holdingId) { openSellModal(holdingId); }
@@ -753,7 +753,7 @@ async function runComparison() {
     }
 }
 
-function openTradeModal(type) { document.getElementById('tradeModal').style.display='block'; document.getElementById('modalTitle').innerText = type+' ORDER'; }
+function openTradeModal(type) { document.getElementById('tradeModal').style.display='flex'; document.getElementById('modalTitle').innerText = type+' ORDER'; }
 function closeModal(id) { document.getElementById(id).style.display='none'; }
 async function executeTrade(e) {
     e.preventDefault();
@@ -797,7 +797,7 @@ function openSellModal(holdingId) {
     }
 
     const modal = document.getElementById('sellModal');
-    if (modal) modal.style.display = 'block';
+    if (modal) modal.style.display = 'flex';
 }
 
 async function executeSellFromModal() {
@@ -907,7 +907,7 @@ async function openAssetDetail(holdingId) {
 
     // Show modal first
     const modal = document.getElementById('assetModal');
-    if (modal) modal.style.display = 'block';
+    if (modal) modal.style.display = 'flex';
 
     // Render charts
     await renderAssetDetailCharts(holding);
@@ -995,6 +995,9 @@ function generateSyntheticSeries(base, points) {
     }
     return { labels, values };
 }
+
+
+
 
 function setText(id, text) { const el = document.getElementById(id); if (el) el.innerText = text; }
 function fmtUSD(n) { return (n||0).toLocaleString('en-US', { style:'currency', currency:'USD' }); }

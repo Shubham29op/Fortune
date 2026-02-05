@@ -78,8 +78,8 @@ select { background: var(--bg-panel); border: 1px solid var(--border); color: va
 .text-down { color: var(--down); }
 
 /* Modal */
-.modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index: 100; backdrop-filter: blur(2px); }
-.trade-ticket { width: 400px; background: var(--bg-panel); border: 1px solid var(--border); margin: 10% auto; padding: 25px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index: 100; backdrop-filter: blur(2px); justify-content: center; align-items: center; }
+.trade-ticket { width: 400px; background: var(--bg-panel); border: 1px solid var(--border); padding: 25px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 .ticket-header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
 .input-group { margin-bottom: 15px; flex: 1; }
 .input-group label { font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 5px; }
@@ -164,8 +164,8 @@ select { background: #000; color: white; border: 1px solid var(--border); paddin
 .btn-trade { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 600; cursor: pointer; margin-left: 5px; }
 .btn-trade.sell { background: #cf3030; }
 .btn-exec { background: var(--up); width: 100%; padding: 12px; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; }
-.modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index: 99; }
-.trade-ticket { background: var(--bg-panel); width: 350px; margin: 10% auto; padding: 20px; border: 1px solid var(--border); border-radius: 8px; }
+.modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content:center; align-items:center; backdrop-filter:blur(4px); }
+.trade-ticket { background: var(--bg-panel); width: 350px; padding: 20px; border: 1px solid var(--border); border-radius: 8px; }
 .input-group { margin-bottom: 15px; }
 .input-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 5px; }
 .input-group input, .input-group select { width: 100%; padding: 8px; background: #000; border: 1px solid var(--border); color: white; }
@@ -242,7 +242,7 @@ select { background: #000; color: white; border: 1px solid var(--border); paddin
 .btn-exec { background: var(--up); width: 100%; padding: 12px; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; }
 .btn-icon { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 5px 10px; border-radius: 4px; cursor: pointer; float: right; }
 .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index: 99; }
-.trade-ticket { background: var(--bg-panel); width: 350px; margin: 10% auto; padding: 20px; border: 1px solid var(--border); border-radius: 8px; }
+.trade-ticket { background: var(--bg-panel); width: 350px; padding: 20px; border: 1px solid var(--border); border-radius: 8px; }
 .input-group { margin-bottom: 15px; }
 .input-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 5px; }
 .input-group input, .input-group select { width: 100%; padding: 8px; background: #000; border: 1px solid var(--border); color: white; }
@@ -258,7 +258,7 @@ select { background: #000; color: white; border: 1px solid var(--border); paddin
 .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.7); z-index: 1000;
-    display: none; justify-content: center; align-items: center;
+    display: flex; justify-content: center; align-items: center;
     backdrop-filter: blur(4px);
 }
 
@@ -266,7 +266,7 @@ select { background: #000; color: white; border: 1px solid var(--border); paddin
     background: #1e1e1e; width: 700px; max-width: 90%;
     border-radius: 12px; border: 1px solid #333;
     box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    overflow: hidden; display: flex; flex-direction: column;
+    overflow: hidden; display: flex; flex-direction: column; position:relative;
 }
 
 .modal-header {
@@ -295,3 +295,8 @@ select { background: #000; color: white; border: 1px solid var(--border); paddin
 .time-btn:hover, .time-btn.active { background: #2962ff; color: white; border-color: #2962ff; }
 .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #666; }
 .close-btn:hover { color: #fff; }
+
+/* Quick stats theme-aware colors */
+.quick-stats span { color: var(--text-muted); }
+.stat-cash { color: var(--text-main); font-weight: 700; }
+.stat-margin { color: var(--accent); font-weight: 700; }
