@@ -1,7 +1,7 @@
 package com.portfolio.backend.entity.enums;
 
 public enum AssetCategory {
-    NSE,
-    MF,
-    COMMODITY
+    NSE,        // Stocks
+    MF,         // Mutual Funds
+    COMMODITY   // Gold, Silver, Copper
 }

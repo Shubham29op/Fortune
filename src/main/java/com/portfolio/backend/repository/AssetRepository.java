@@ -9,6 +9,10 @@ import java.util.List;
 
 @Repository
 public interface AssetRepository extends JpaRepository<Asset, Long> {
+    
+    // Custom query to find assets by category (e.g., "Give me all NSE stocks")
     List<Asset> findByCategory(AssetCategory category);
+
+    // Custom query to find by symbol (e.g., "Find asset details for RELIANCE")
     Asset findBySymbol(String symbol);
 }

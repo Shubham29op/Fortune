@@ -5,6 +5,10 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.util.Map;
 
+/**
+ * Metadata for visualization context
+ * Used when user interacts with charts/graphs
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

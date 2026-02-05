@@ -18,5 +18,6 @@ public class Manager {
     @Column(unique = true, nullable = false)
     private String email;
 
+    // In a real app, store this hashed!
     private String password; 
 }

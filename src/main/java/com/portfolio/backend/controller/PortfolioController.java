@@ -2,7 +2,7 @@ package com.portfolio.backend.controller;
 
 import com.portfolio.backend.dto.BuyAssetRequest;
 import com.portfolio.backend.entity.ClientHolding;
-import com.portfolio.backend.repository.ClientHoldingRepository;
+import com.portfolio.backend.repository.ClientHoldingRepository; // Import this
 import com.portfolio.backend.service.PortfolioServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +19,9 @@ public class PortfolioController {
     private PortfolioServiceInterface portfolioService;
     
     @Autowired
-    private ClientHoldingRepository holdingRepository;
+    private ClientHoldingRepository holdingRepository; // Direct access for reading
 
+    // --- EXISTING BUY ENDPOINT ---
     @PostMapping("/buy")
     public ResponseEntity<?> buyAsset(@RequestBody BuyAssetRequest request) {
         try {
@@ -31,11 +32,13 @@ public class PortfolioController {
         }
     }
 
+    // --- NEW: GET HOLDINGS FOR A CLIENT ---
     @GetMapping("/{clientId}")
     public ResponseEntity<List<ClientHolding>> getHoldings(@PathVariable Long clientId) {
         return ResponseEntity.ok(holdingRepository.findByClient_ClientId(clientId));
     }
 
+    // --- NEW: SELL ASSET (Basic Implementation) ---
     @DeleteMapping("/{holdingId}")
     public ResponseEntity<?> sellAsset(@PathVariable Long holdingId) {
         holdingRepository.deleteById(holdingId);

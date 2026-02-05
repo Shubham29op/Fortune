@@ -3,6 +3,9 @@ package com.portfolio.backend.service.visualization;
 import com.portfolio.backend.dto.chatbot.VisualizationMetadata;
 import org.springframework.stereotype.Component;
 
+/**
+ * Strategy for explaining line charts (performance trends)
+ */
 @Component
 public class LineChartStrategy implements VisualizationExplanationStrategy {
     

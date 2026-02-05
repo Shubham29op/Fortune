@@ -90,13 +90,12 @@ select { background: var(--bg-panel); border: 1px solid var(--border); color: va
 .page-view { display: none; }
 .page-view.active { display: block; }
 
-/* Add this to your CSS */
 .chart-wrapper {
     position: relative;
-    flex: 1;              /* Fill remaining space in the flex panel */
-    min-height: 0;        /* Critical: allows flex item to shrink/stop growing */
+    flex: 1;
+    min-height: 0;
     width: 100%;
-    overflow: hidden;     /* Cuts off any rogue pixel overflow */
+    overflow: hidden;
 }
 
 :root {
@@ -114,9 +113,9 @@ select { background: var(--bg-panel); border: 1px solid var(--border); color: va
 body { background: var(--bg-dark); color: var(--text-main); font-family: 'Inter', sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; overflow: hidden; }
 
 /* Ticker */
-.ticker-wrap { height: 28px; background: #000; border-bottom: 1px solid var(--border); overflow: hidden; white-space: nowrap; display: flex; align-items: center; }
+.ticker-wrap { height: 28px; background: #020617; border-bottom: 1px solid var(--border); overflow: hidden; white-space: nowrap; display: flex; align-items: center; }
 .ticker { display: inline-block; animation: ticker 30s linear infinite; }
-.ticker-item { display: inline-block; margin-right: 30px; font-size: 11px; font-family: 'Roboto Mono', monospace; color: var(--text-muted); }
+.ticker-item { display: inline-block; margin-right: 30px; font-size: 12px; font-family: 'Roboto Mono', monospace; color: #e5e7eb; font-weight: 500; }
 @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
 /* Layout */
@@ -299,6 +298,72 @@ select { background: #000; color: white; border: 1px solid var(--border); paddin
 .quick-stats span { color: var(--text-muted); }
 .stat-cash { color: var(--text-main); font-weight: 700; }
 .stat-margin { color: var(--accent); font-weight: 700; }
+
+@media (max-width: 1024px) {
+    .kpi-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .chart-grid {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+
+    .sidebar {
+        width: 220px;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding: 12px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .watchlist-widget {
+        display: none;
+    }
+
+    .workspace {
+        padding: 12px;
+    }
+
+    .kpi-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .chart-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        height: auto;
+    }
+
+    .panel {
+        padding: 12px;
+    }
+
+    .control-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    select {
+        min-width: 0;
+        width: 100%;
+    }
+}
 
 .sidebar {
     font-size: 15px;

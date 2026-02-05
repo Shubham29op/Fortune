@@ -13,7 +13,7 @@ public class Client {
     private Long clientId;
 
     @Column(nullable = false)
-    private Long managerId = 1L;
+    private Long managerId = 1L; // Default manager for now
 
     @Column(nullable = false)
     private String fullName;

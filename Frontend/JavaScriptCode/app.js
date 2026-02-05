@@ -1,5 +1,6 @@
 const API_BASE = "http://localhost:8080/api";
 
+// State Management
 let currentHoldings = [];
 let assetCatalog = [];
 let watchlist = JSON.parse(localStorage.getItem('mgr_watchlist')) || [];
@@ -23,7 +24,6 @@ let profitByAssetChart = null;
 
 // Public market data (Alpha Vantage) config for dynamic 52w trend
 const ALPHA_BASE = 'https://www.alphavantage.co/query';
-// TODO: Replace with your real key or read from localStorage under 'alpha_key'
 let ALPHA_KEY = 'YOUR_ALPHA_VANTAGE_KEY';
 try { const k = localStorage.getItem('alpha_key'); if (k) ALPHA_KEY = k; } catch(e) {}
 const TREND_POLL_MS = 60000; // 60s
@@ -32,6 +32,7 @@ let trendLabels = [];
 let trendSeries = [];
 let lastTrendSymbol = null;
 
+// --- Init ---
 document.addEventListener('DOMContentLoaded', async () => {
     updateTime();
     await fetchAssets();
@@ -39,15 +40,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderWatchlist();
     startLiveEngine();
 
+    // Ensure modals are hidden on load
     const tm = document.getElementById('tradeModal'); if (tm) tm.style.display = 'none';
     const wm = document.getElementById('wlModal'); if (wm) wm.style.display = 'none';
     const am = document.getElementById('assetModal'); if (am) am.style.display = 'none';
     const sm = document.getElementById('sellModal'); if (sm) sm.style.display = 'none';
     
+    // Auto-load history
     renderHistoryTable();
     updateRealizedKPI();
 });
 
+// --- Navigation ---
 function switchPage(pageId) {
     document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-menu li').forEach(l => l.classList.remove('active'));
@@ -58,11 +62,13 @@ function switchPage(pageId) {
     if (pageId === 'history') renderHistoryCharts();
 }
 
+// --- Data Fetching ---
 async function fetchAssets() {
     try {
         const res = await fetch(`${API_BASE}/assets`);
         assetCatalog = await res.json();
         
+        // Populate Selects
         const tradeSel = document.getElementById('tradeAsset');
         const wlSel = document.getElementById('wlAssetSelect');
         tradeSel.innerHTML = wlSel.innerHTML = '';
@@ -80,9 +86,11 @@ async function fetchClients() {
         const res = await fetch(`${API_BASE}/clients`);
         const clients = await res.json();
         
+        // 1. Global Selector
         const sel = document.getElementById('globalClientSelect');
         sel.innerHTML = '<option value="">-- Select Account --</option>';
         
+        // 2. Comparison Selectors
         const comp1 = document.getElementById('compClient1');
         const comp2 = document.getElementById('compClient2');
         if(comp1) comp1.innerHTML = '<option value="">-- Client A --</option>';
@@ -105,6 +113,7 @@ async function loadGlobalContext() {
         const res = await fetch(`${API_BASE}/portfolio/${clientId}`);
         const rawData = await res.json();
         
+        // MOCK LIVE MARKET: Apply random noise
         currentHoldings = rawData.map(h => {
             const volatility = h.asset.category === 'COMMODITY' ? 0.08 : 0.04; 
             const noise = (Math.random() * volatility * 2) - volatility; 
@@ -125,11 +134,13 @@ async function loadGlobalContext() {
         renderCharts();
         renderHistoryCharts();
 
+        // If Risk Page is open, refresh it
         if(document.getElementById('risk').classList.contains('active')) calculateRiskProfile();
 
     } catch(e) { console.error("Portfolio Error", e); }
 }
 
+// --- Dashboard Logic ---
 function updateDashboard() {
     let totalInvested = 0, totalVal = 0, totalUnrealized = 0;
 
@@ -161,12 +172,16 @@ function updateRealizedKPI() {
     el.className = totalRealized >= 0 ? "text-up" : "text-down";
 }
 
+// --- RISK ANALYSIS ENGINE (Preserved & Merged) ---
 function calculateRiskProfile() {
+    // Standard Beta Weights
     const weights = { 'COMMODITY': 1.5, 'NSE': 1.0, 'MF': 0.7 };
     
     let totalValue = 0;
     let weightedBetaSum = 0;
     let categoryExposure = { 'COMMODITY': 0, 'NSE': 0, 'MF': 0 };
+    
+    // Risk Contribution Table Data
     let riskContributors = [];
 
     currentHoldings.forEach(h => {
@@ -193,13 +208,16 @@ function calculateRiskProfile() {
 
     const portfolioBeta = weightedBetaSum / totalValue;
     
+    // Determine Risk Label
     let riskLabel = "MODERATE";
-    let riskColor = "#f59e0b";
-    if(portfolioBeta < 0.8) { riskLabel = "CONSERVATIVE"; riskColor = "#10b981"; }
-    if(portfolioBeta > 1.2) { riskLabel = "AGGRESSIVE"; riskColor = "#ef4444"; }
+    let riskColor = "#f59e0b"; // Orange
+    if(portfolioBeta < 0.8) { riskLabel = "CONSERVATIVE"; riskColor = "#10b981"; } // Green
+    if(portfolioBeta > 1.2) { riskLabel = "AGGRESSIVE"; riskColor = "#ef4444"; }   // Red
 
+    // Sort contributors by risk impact
     riskContributors.sort((a, b) => b.contrib - a.contrib);
 
+    // Generate Risk Contribution Rows
     const contribRows = riskContributors.slice(0, 3).map(r => `
         <tr>
             <td style="color:var(--text-main)">${r.symbol}</td>
@@ -260,6 +278,7 @@ function calculateRiskProfile() {
     document.getElementById('riskContent').innerHTML = riskHtml;
 }
 
+// --- Watchlist Logic ---
 function addToWatchlist() {
     const sel = document.getElementById('wlAssetSelect');
     const symbol = sel.options[sel.selectedIndex].text.split(" - ")[0];
@@ -300,6 +319,7 @@ function renderWatchlist() {
 function saveWatchlist() { localStorage.setItem('mgr_watchlist', JSON.stringify(watchlist)); }
 function openWatchlistModal() { document.getElementById('wlModal').style.display = 'flex'; }
 
+// --- Realized Profit & History Logic ---
 function sellAsset(holdingId) { openSellModal(holdingId); }
 
 function renderHistoryTable() {
@@ -440,17 +460,20 @@ function clearHistory() {
     }
 }
 
+// --- Live Engine ---
 function startLiveEngine() {
     if(liveInterval) clearInterval(liveInterval);
     setInterval(() => {
+        // 1. Tick Watchlist
         watchlist.forEach(w => {
-            const move = (Math.random() * 2) - 1;
+            const move = (Math.random() * 2) - 1; // -1% to +1%
             w.price = w.price * (1 + move/100);
             w.change = move;
         });
         saveWatchlist(); 
         renderWatchlist();
 
+        // 2. Tick Ticker Tape
         const ticker = document.getElementById('tickerTape');
         let html = '';
         watchlist.forEach(w => {
@@ -460,11 +483,14 @@ function startLiveEngine() {
         });
         ticker.innerHTML = html;
 
+        // 3. Update Time
         updateTime();
     }, 2000);
 }
 
+// --- Charting ---
 function renderCharts() {
+    // Allocation
     const ctxAlloc = document.getElementById('allocationChart').getContext('2d');
     const categories = {};
     currentHoldings.forEach(h => {
@@ -490,6 +516,7 @@ function renderCharts() {
                 tooltip: {
                     callbacks: {
                         afterLabel: (context) => {
+                            // Add chatbot integration hint
                             return '💬 Click to explain this chart';
                         }
                     }
@@ -529,13 +556,20 @@ function renderCharts() {
     const ctxMain = document.getElementById('mainChart').getContext('2d');
     if (chartInstance) chartInstance.destroy();
 
+    let totalValTrend = 0;
+    currentHoldings.forEach(h => {
+        totalValTrend += h.mktValue;
+    });
+    const trendBase = totalValTrend > 0 ? totalValTrend : 10000;
+    const trendSeriesData = generateSyntheticSeries(trendBase, 30);
+
     chartInstance = new Chart(ctxMain, {
         type: 'line',
         data: {
-            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+            labels: trendSeriesData.labels,
             datasets: [{
                 label: 'Performance',
-                data: [10000, 10500, 10200, 10800, 11000],
+                data: trendSeriesData.values,
                 borderColor: '#3b82f6',
                 fill: true,
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -584,6 +618,7 @@ function renderCharts() {
         }
     });
 
+    // Monthly Realized P&L (last 12 months)
     const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
     const now = new Date();
     const monthLabels = [];
@@ -662,6 +697,7 @@ function renderCharts() {
         }
     });
 
+    // Recent Transactions (last 8)
     const recentCtx = document.getElementById('recentTxChart').getContext('2d');
     const recent = historyLog.slice(0, 8).reverse();
     if (recentTxChart) recentTxChart.destroy();
@@ -686,6 +722,7 @@ function renderCharts() {
         }
     });
 
+    // Top 5 Holdings by Market Value
     const topCtx = document.getElementById('topHoldingsChart').getContext('2d');
     const top = [...currentHoldings].sort((a,b) => b.mktValue - a.mktValue).slice(0,5);
     if (topHoldingsChart) topHoldingsChart.destroy();
@@ -750,6 +787,7 @@ function renderCharts() {
     });
 }
 
+// --- Utils & Client Onboard/Compare ---
 function updateTime() { document.getElementById('marketTime').innerText = new Date().toLocaleTimeString(); }
 
 function renderHoldings() {
@@ -894,6 +932,7 @@ async function handleOnboard(e) {
 
 function processHoldingsData(holdings) {
     return holdings.map(h => {
+        // Simulate market volatility based on asset category
         const volatility = h.asset.category === 'COMMODITY' ? 0.08 : 0.04; 
         const noise = (Math.random() * volatility * 2) - volatility; 
         const curPrice = h.avgBuyPrice * (1 + noise);
@@ -917,6 +956,7 @@ async function runComparison() {
     if(c1Id === c2Id) return alert("Select different clients for comparison.");
 
     try {
+        // 1. Parallel Fetch of both portfolios
         const [res1, res2] = await Promise.all([
             fetch(`${API_BASE}/portfolio/${c1Id}`),
             fetch(`${API_BASE}/portfolio/${c2Id}`)
@@ -925,15 +965,18 @@ async function runComparison() {
         const raw1 = await res1.json();
         const raw2 = await res2.json();
 
+        // 2. Process Data (Calculate Market Values)
         const p1 = processHoldingsData(raw1);
         const p2 = processHoldingsData(raw2);
 
+        // 3. Calculate Aggregates
         const getTotal = (p) => p.reduce((acc, h) => acc + h.mktValue, 0);
         const getAllocation = (p, cat) => p.filter(h => h.asset.category === cat).reduce((acc, h) => acc + h.mktValue, 0);
 
         const v1 = getTotal(p1);
         const v2 = getTotal(p2);
 
+        // 4. Render Value Comparison Chart (Bar)
         const ctxVal = document.getElementById('compValueChart').getContext('2d');
         if(compChart1) compChart1.destroy();
 
@@ -965,6 +1008,8 @@ async function runComparison() {
             }
         });
 
+        // 5. Render Risk/Return Scatter (Simulated)
+        // We calculate a weighted beta for X-axis and a simulated YTD return for Y-axis
         const calcBeta = (p, val) => {
             if(val === 0) return 0;
             const weights = { 'COMMODITY': 1.5, 'NSE': 1.0, 'MF': 0.7 };
@@ -983,7 +1028,7 @@ async function runComparison() {
                 datasets: [
                     {
                         label: 'Client A',
-                        data: [{ x: beta1, y: (beta1 * 8) + (Math.random()*5), r: 15 }],
+                        data: [{ x: beta1, y: (beta1 * 8) + (Math.random()*5), r: 15 }], // Simulated CAPM-like return
                         backgroundColor: '#3b82f6'
                     },
                     {
@@ -1032,6 +1077,7 @@ async function executeTrade(e) {
     loadGlobalContext();
 }
 
+// --- Sell Modal ---
 function openSellModal(holdingId) {
     const holding = currentHoldings.find(h => h.holdingId === holdingId);
     if (!holding) return;
@@ -1078,7 +1124,7 @@ async function executeSellFromModal() {
 
     const realizedPnL = (sellPrice - holding.avgBuyPrice) * holding.quantity;
     const record = {
-        date: new Date().toLocaleDateString(),
+        date: new Date().toISOString().slice(0, 10),
         symbol: holding.asset.symbol,
         type: 'SELL',
         qty: holding.quantity,
@@ -1101,6 +1147,7 @@ async function executeSellFromModal() {
     }
 }
 
+// --- Asset Detail Modal ---
 function closeAssetDetail() {
     const modal = document.getElementById('assetModal');
     if (modal) modal.style.display = 'none';
@@ -1113,6 +1160,7 @@ async function openAssetDetail(holdingId) {
     if (!holding) return;
     currentAssetHoldingId = holdingId;
 
+    // Header and KPIs
     const invested = holding.avgBuyPrice * holding.quantity;
     const current = holding.curPrice * holding.quantity;
     const pnlAbs = current - invested;
@@ -1144,6 +1192,7 @@ async function openAssetDetail(holdingId) {
     setText('assetAvgPrice', fmtUSD(holding.avgBuyPrice));
     setText('assetCategory', holding.asset.category || '-');
 
+    // Wire buttons
     const addBtn = document.getElementById('assetAddBtn');
     if (addBtn) {
         addBtn.onclick = () => {
@@ -1153,8 +1202,7 @@ async function openAssetDetail(holdingId) {
                 // Match by data-symbol attribute populated during fetchAssets()
                 for (const opt of sel.options) {
                     if (opt.getAttribute('data-symbol') === holding.asset.symbol) {
-                        sel.value = opt.value;
-                        break;
+                        sel.value = opt.value; break;
                     }
                 }
             }
@@ -1165,17 +1213,17 @@ async function openAssetDetail(holdingId) {
         exitBtn.onclick = () => sellAsset(holding.holdingId);
     }
 
+    // Show modal first
     const modal = document.getElementById('assetModal');
     if (modal) modal.style.display = 'flex';
 
+    // Render charts
     await renderAssetDetailCharts(holding);
 }
 
 async function renderAssetDetailCharts(holding) {
-    // Determine provider-friendly symbol
     const norm = normalizeSymbolForAlpha(holding);
 
-    // Try Alpha Vantage weekly adjusted first
     let labels = [];
     let series = [];
     try {
@@ -1184,7 +1232,7 @@ async function renderAssetDetailCharts(holding) {
             labels = w.labels;
             series = w.prices;
         }
-    } catch(e) { /* ignore and fallback */ }
+    } catch(e) { /* ignore, fallback below */ }
 
     // Fallback to backend endpoint
     if (series.length === 0) {
@@ -1239,6 +1287,7 @@ async function renderAssetDetailCharts(holding) {
         startTrendPolling(norm);
     }
 
+    // Breakdown doughnut: asset vs rest of portfolio
     const total = currentHoldings.reduce((acc, h) => acc + h.mktValue, 0);
     const me = holding.mktValue;
     const others = Math.max(total - me, 0);
@@ -1268,9 +1317,9 @@ function generateSyntheticSeries(base, points) {
     let price = base;
     for (let i = points - 1; i >= 0; i--) {
         const d = new Date();
-        d.setDate(d.getDate() - i * 7);
+        d.setDate(d.getDate() - i * 7); // weekly points for 52 weeks
         labels.push(d.toLocaleDateString());
-        const move = (Math.random() * 0.06) - 0.03;
+        const move = (Math.random() * 0.06) - 0.03; // +/-3%
         price = Math.max(0.1, price * (1 + move));
         values.push(Number(price.toFixed(2)));
     }

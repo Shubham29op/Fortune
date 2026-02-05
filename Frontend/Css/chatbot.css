@@ -8,19 +8,30 @@
 }
 
 .chatbot-toggle {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
+    min-width: 56px;
+    min-height: 56px;
+    padding: 0 18px;
+    border-radius: 9999px;
     background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
     border: none;
     color: white;
-    font-size: 24px;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+}
+
+.chatbot-toggle-icon {
+    font-size: 22px;
+}
+
+.chatbot-toggle-text {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
 .chatbot-toggle:hover {
@@ -225,6 +236,12 @@
     font-size: 11px;
     color: var(--text-muted);
     padding: 0 4px;
+}
+
+.message-disclaimer {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
 }
 
 .confidence-badge {

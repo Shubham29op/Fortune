@@ -13,6 +13,10 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Main orchestrator service for chatbot functionality
+ * Coordinates RAG, LLM, Portfolio Analysis, and Visualization Explanation
+ */
 @Service
 @Slf4j
 public class ChatbotService implements ChatbotServiceInterface {
@@ -29,16 +33,22 @@ public class ChatbotService implements ChatbotServiceInterface {
     @Autowired
     private VisualizationExplanationServiceInterface visualizationExplanationService;
     
+    /**
+     * Process chat request and generate intelligent response
+     */
     public ChatResponse processChat(ChatRequest request) {
         try {
+            // 1. Build context from multiple sources
             String context = buildContext(request);
             
+            // 2. Retrieve relevant knowledge (RAG)
             String ragContext = ragService.retrieveContext(
                 request.getMessage(),
                 request.getCurrentPage(),
                 request.getVisualizationContext() != null ? request.getVisualizationContext().getChartType() : null
             );
             
+            // 3. Handle visualization-specific queries
             if (request.getVisualizationContext() != null) {
                 String vizExplanation = visualizationExplanationService.explainVisualization(
                     request.getVisualizationContext(),
@@ -47,14 +57,18 @@ public class ChatbotService implements ChatbotServiceInterface {
                 context = vizExplanation + "\n\n" + context;
             }
             
+            // 4. Combine all context
             String fullContext = ragContext + "\n\n" + context;
             
+            // 5. Generate LLM response
             ChatResponse response = llmService.generateResponse(request.getMessage(), fullContext);
             
+            // 6. Enhance response with portfolio insights if applicable
             if (request.getClientId() != null) {
                 enhanceWithPortfolioInsights(response, request.getClientId());
             }
             
+            // 7. Add suggested questions
             response.setSuggestedQuestions(generateSuggestedQuestions(request));
             
             return response;
@@ -65,6 +79,9 @@ public class ChatbotService implements ChatbotServiceInterface {
         }
     }
     
+    /**
+     * Build context from portfolio data
+     */
     private String buildContext(ChatRequest request) {
         StringBuilder context = new StringBuilder();
         
@@ -95,11 +112,21 @@ public class ChatbotService implements ChatbotServiceInterface {
         return context.toString();
     }
     
+    /**
+     * Get current prices for assets (mock implementation)
+     * In production, this would fetch from market data API
+     */
     private Map<String, BigDecimal> getCurrentPrices(Long clientId) {
+        // TODO: Integrate with actual market data service
+        // For now, return empty map - PortfolioAnalysisService will use buy prices as fallback
         return new HashMap<>();
     }
     
+    /**
+     * Enhance response with portfolio-specific insights
+     */
     private void enhanceWithPortfolioInsights(ChatResponse response, Long clientId) {
+        // Add portfolio context to insights if not already present
         if (response.getInsights() == null || response.getInsights().isEmpty()) {
             Map<String, BigDecimal> currentPrices = getCurrentPrices(clientId);
             PortfolioAnalysisResult analysis = portfolioAnalysisService.analyzePortfolio(clientId, currentPrices);
@@ -110,6 +137,9 @@ public class ChatbotService implements ChatbotServiceInterface {
         }
     }
     
+    /**
+     * Generate contextual suggested questions
+     */
     private java.util.List<String> generateSuggestedQuestions(ChatRequest request) {
         java.util.List<String> questions = new java.util.ArrayList<>();
         

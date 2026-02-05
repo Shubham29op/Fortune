@@ -10,6 +10,10 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * RAG (Retrieval-Augmented Generation) Service
+ * Retrieves relevant knowledge from knowledge base files
+ */
 @Service
 @Slf4j
 public class RAGService implements RAGServiceInterface {
@@ -21,9 +25,11 @@ public class RAGService implements RAGServiceInterface {
         loadKnowledgeBase();
     }
     
+ 
     public String retrieveContext(String query, String currentPage, String chartType) {
         List<String> relevantSnippets = new ArrayList<>();
         String lowerQuery = query.toLowerCase();
+        
         
         if (containsKeyword(lowerQuery, "risk", "var", "volatility", "beta")) {
             relevantSnippets.add(knowledgeBase.getOrDefault("risk_heuristics", ""));
@@ -44,6 +50,7 @@ public class RAGService implements RAGServiceInterface {
             relevantSnippets.add(knowledgeBase.getOrDefault("financial_definitions", ""));
         }
         
+       
         relevantSnippets.add(knowledgeBase.getOrDefault("portfolio_rules", ""));
         
         return relevantSnippets.stream()
@@ -67,6 +74,7 @@ public class RAGService implements RAGServiceInterface {
     
     private void loadKnowledgeBase() {
         try {
+          
             knowledgeBase.put("financial_definitions", loadFile("financial_definitions.txt"));
             knowledgeBase.put("risk_heuristics", loadFile("risk_heuristics.txt"));
             knowledgeBase.put("portfolio_rules", loadFile("portfolio_rules.txt"));
@@ -75,6 +83,7 @@ public class RAGService implements RAGServiceInterface {
             log.info("Knowledge base loaded successfully");
         } catch (Exception e) {
             log.error("Error loading knowledge base", e);
+       
             knowledgeBase.put("financial_definitions", getDefaultFinancialDefinitions());
             knowledgeBase.put("risk_heuristics", getDefaultRiskHeuristics());
             knowledgeBase.put("portfolio_rules", getDefaultPortfolioRules());
@@ -93,6 +102,7 @@ public class RAGService implements RAGServiceInterface {
         }
         return "";
     }
+    
     
     private String getDefaultFinancialDefinitions() {
         return """
