@@ -19,43 +19,48 @@ The chatbot is an **enterprise-grade AI assistant** that:
 ---
 
 ## 2. High-Level Architecture
+graph LR
+    subgraph Client_Interface [Frontend Layer]
+        User((User))
+        Widget[Interactive Chatbot UI]
+    end
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│  FRONTEND (Browser)                                                      │
-│  ┌─────────────────────┐                                                │
-│  │  index.html          │  ← Includes chatbot.css, chatbot.js, app.js   │
-│  │  • Floating widget   │                                                │
-│  │  • Chart click →     │  Sends: message, clientId, currentPage,        │
-│  │    setVisualization  │         visualizationContext                    │
-│  └──────────┬───────────┘                                                │
-└─────────────┼────────────────────────────────────────────────────────────┘
-              │  POST /api/chatbot/chat  (JSON)
-              ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  BACKEND (Spring Boot)                                                    │
-│  ┌─────────────────────┐                                                │
-│  │  ChatbotController  │  Validates request, delegates to ChatbotService │
-│  └──────────┬──────────┘                                                │
-│             ▼                                                            │
-│  ┌─────────────────────┐     ┌──────────────────┐                      │
-│  │  ChatbotService      │────▶│  buildContext()   │  Portfolio data      │
-│  │  (orchestrator)      │     └──────────────────┘  for selected client │
-│  │                      │     ┌──────────────────┐                      │
-│  │                      │────▶│  RAGService       │  Knowledge snippets │
-│  │                      │     └──────────────────┘                      │
-│  │                      │     ┌──────────────────┐                      │
-│  │                      │────▶│  VizExplanation  │  If chart context   │
-│  │                      │     │  Service         │  provided            │
-│  │                      │     └──────────────────┘                      │
-│  │                      │     ┌──────────────────┐                      │
-│  │                      │────▶│  LLMService     │  Gemini API +        │
-│  │                      │     │  (generateResp) │  fallback            │
-│  └─────────────────────┘     └──────────────────┘                      │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+    subgraph Security_Gateway [Orchestration Layer]
+        API[Spring Boot Controller]
+        Auth{Auth & Context}
+    end
 
----
+    subgraph AI_Engine [Intelligence Engine]
+        Service[Chatbot Service]
+        LLM[Gemini Pro / LLM]
+        Vector[(Vector DB / RAG)]
+    end
+
+    subgraph Enterprise_Data [Data Layer]
+        SQL[(Portfolio DB)]
+        KB[Knowledge Base]
+    end
+
+    %% Flow
+    User -->|Queries| Widget
+    Widget -->|Secure Request| API
+    API --> Auth
+    Auth --> Service
+    
+    Service -->|1. Context Retrieval| SQL
+    Service -->|2. Semantic Search| Vector
+    Vector --- KB
+    
+    Service -->|3. Augmented Prompt| LLM
+    LLM -->|4. Insightful Response| Service
+    Service -->|5. Structured Output| Widget
+    Widget -->|Visualization| User
+
+    %% Styling
+    style LLM fill:#4285F4,stroke:#fff,color:#fff
+    style Vector fill:#34A853,stroke:#fff,color:#fff
+    style API fill:#FBBC05,stroke:#fff
+    style User fill:#EA4335,stroke:#fff,color:#fff
 
 ## 3. Backend Components
 
