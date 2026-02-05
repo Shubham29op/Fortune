@@ -21,6 +21,17 @@ let categoryPerformanceChart = null;
 let winRateChart = null;
 let profitByAssetChart = null;
 
+// Public market data (Alpha Vantage) config for dynamic 52w trend
+const ALPHA_BASE = 'https://www.alphavantage.co/query';
+// TODO: Replace with your real key or read from localStorage under 'alpha_key'
+let ALPHA_KEY = 'YOUR_ALPHA_VANTAGE_KEY';
+try { const k = localStorage.getItem('alpha_key'); if (k) ALPHA_KEY = k; } catch(e) {}
+const TREND_POLL_MS = 60000; // 60s
+let trendPollInterval = null;
+let trendLabels = [];
+let trendSeries = [];
+let lastTrendSymbol = null;
+
 document.addEventListener('DOMContentLoaded', async () => {
     updateTime();
     await fetchAssets();
@@ -1161,24 +1172,45 @@ async function openAssetDetail(holdingId) {
 }
 
 async function renderAssetDetailCharts(holding) {
+    // Determine provider-friendly symbol
+    const norm = normalizeSymbolForAlpha(holding);
+
+    // Try Alpha Vantage weekly adjusted first
     let labels = [];
     let series = [];
     try {
-        const res = await fetch(`${API_BASE}/market/prices?symbol=${encodeURIComponent(holding.asset.symbol)}&range=52w`);
-        if (res.ok) {
-            const data = await res.json();
-            if (data && Array.isArray(data.labels) && Array.isArray(data.prices)) {
-                labels = data.labels;
-                series = data.prices;
-            }
+        const w = await fetchWeeklyAdjusted(norm);
+        if (w && Array.isArray(w.labels) && Array.isArray(w.prices) && w.labels.length > 0) {
+            labels = w.labels;
+            series = w.prices;
         }
-    } catch(e) {}
+    } catch(e) { /* ignore and fallback */ }
 
+    // Fallback to backend endpoint
+    if (series.length === 0) {
+        try {
+            const res = await fetch(`${API_BASE}/market/prices?symbol=${encodeURIComponent(holding.asset.symbol)}&range=52w`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && Array.isArray(data.labels) && Array.isArray(data.prices)) {
+                    labels = data.labels;
+                    series = data.prices;
+                }
+            }
+        } catch(e) { /* ignore */ }
+    }
+
+    // Final fallback: synthetic
     if (series.length === 0) {
         const s = generateSyntheticSeries(holding.avgBuyPrice || holding.curPrice || 100, 52);
         labels = s.labels;
         series = s.values;
     }
+
+    // Persist arrays for live updates
+    trendLabels = labels.slice();
+    trendSeries = series.slice();
+    lastTrendSymbol = norm;
 
     const trendCtxEl = document.getElementById('assetTrendChart');
     if (trendCtxEl) {
@@ -1186,9 +1218,9 @@ async function renderAssetDetailCharts(holding) {
         if (assetTrendInstance) assetTrendInstance.destroy();
         assetTrendInstance = new Chart(ctx, {
             type: 'line',
-            data: { labels, datasets: [{
+            data: { labels: trendLabels, datasets: [{
                 label: 'Price',
-                data: series,
+                data: trendSeries,
                 borderColor: '#3b82f6',
                 fill: true,
                 backgroundColor: 'rgba(59,130,246,0.08)',
@@ -1197,10 +1229,14 @@ async function renderAssetDetailCharts(holding) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: { duration: 400, easing: 'easeOutQuad' },
                 plugins: { legend: { display: false } },
                 scales: { x: { grid: { display:false } }, y: { grid: { color:'#1e293b' } } }
             }
         });
+
+        // Start live updates via lightweight polling
+        startTrendPolling(norm);
     }
 
     const total = currentHoldings.reduce((acc, h) => acc + h.mktValue, 0);
@@ -1241,7 +1277,81 @@ function generateSyntheticSeries(base, points) {
     return { labels, values };
 }
 
+// === Alpha Vantage integration for 52w trend ===
+function normalizeSymbolForAlpha(holding) {
+    const raw = (holding && holding.asset && holding.asset.symbol) ? holding.asset.symbol : '';
+    const cat = (holding && holding.asset && holding.asset.category) ? holding.asset.category : '';
+    // Append .NS for NSE category, else use as-is
+    if (cat === 'NSE' && !raw.endsWith('.NS')) return raw + '.NS';
+    return raw;
+}
 
+async function fetchWeeklyAdjusted(symbol) {
+    if (!symbol || !ALPHA_KEY || ALPHA_KEY === 'YJSX1FCKQNHTGG5B') return null;
+    const url = `${ALPHA_BASE}?function=TIME_SERIES_WEEKLY_ADJUSTED&symbol=${encodeURIComponent(symbol)}&apikey=${encodeURIComponent(ALPHA_KEY)}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data || !data['Weekly Adjusted Time Series']) return null;
+    const series = data['Weekly Adjusted Time Series'];
+    const dates = Object.keys(series).sort(); // ascending
+    const last52 = dates.slice(Math.max(0, dates.length - 52));
+    const labels = last52;
+    const prices = last52.map(d => Number(series[d]['5. adjusted close'] || series[d]['4. close'] || 0));
+    return { labels, prices };
+}
+
+async function fetchGlobalQuote(symbol) {
+    if (!symbol || !ALPHA_KEY || ALPHA_KEY === 'YOUR_ALPHA_VANTAGE_KEY') return null;
+    const url = `${ALPHA_BASE}?function=GLOBAL_QUOTE&symbol=${encodeURIComponent(symbol)}&apikey=${encodeURIComponent(ALPHA_KEY)}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const q = data && data['Global Quote'];
+    if (!q) return null;
+    const price = Number(q['05. price'] || 0);
+    return isFinite(price) && price > 0 ? price : null;
+}
+
+function startTrendPolling(symbol) {
+    // Clear any existing polling
+    if (trendPollInterval) { clearInterval(trendPollInterval); trendPollInterval = null; }
+    if (!symbol || !assetTrendInstance) return;
+
+    const updateFromQuote = async () => {
+        try {
+            const latest = await fetchGlobalQuote(symbol);
+            if (latest == null) return;
+            // Update last point within current week, or append a new week if needed
+            const now = new Date();
+            const lastLabel = trendLabels[trendLabels.length - 1];
+            let lastDate = lastLabel ? new Date(lastLabel) : null;
+            if (!lastDate || isNaN(lastDate)) {
+                // if label not ISO, just replace last value
+                trendSeries[trendSeries.length - 1] = latest;
+            } else {
+                // If a new week has started (Mon-based), append new label/value
+                const diffDays = Math.floor((now - lastDate) / (1000*60*60*24));
+                if (diffDays >= 7) {
+                    const iso = now.toISOString().slice(0,10);
+                    trendLabels.push(iso);
+                    trendSeries.push(latest);
+                    if (trendLabels.length > 52) { trendLabels.shift(); trendSeries.shift(); }
+                } else {
+                    // Update current week point
+                    trendSeries[trendSeries.length - 1] = latest;
+                }
+            }
+            assetTrendInstance.data.labels = trendLabels;
+            assetTrendInstance.data.datasets[0].data = trendSeries;
+            assetTrendInstance.update();
+        } catch(e) { /* ignore transient errors */ }
+    };
+
+    // Kick once immediately, then poll
+    updateFromQuote();
+    trendPollInterval = setInterval(updateFromQuote, TREND_POLL_MS);
+}
 
 
 function setText(id, text) { const el = document.getElementById(id); if (el) el.innerText = text; }
