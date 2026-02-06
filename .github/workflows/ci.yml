@@ -38,9 +38,11 @@ jobs:
       with:
         node-version: '21' 
 
-    - name: Install Frontend Dependencies
-      working-directory: Frontend
-      run: npm ci
+    # The npm ci command was removed because a package.json file is not present.
+    # If you add a package.json to the Frontend directory, you can re-enable this step.
+    # - name: Install Frontend Dependencies
+    #   working-directory: Frontend
+    #   run: npm ci
 
     # Add frontend build and test commands here once package.json is available
     # - name: Build Frontend
