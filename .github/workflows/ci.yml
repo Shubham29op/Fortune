@@ -23,7 +23,6 @@ jobs:
         
 
     - name: Build and Test Backend
-      working-directory: Fortune
       run: ./mvnw clean install
 
   frontend-ci:
@@ -40,7 +39,7 @@ jobs:
         node-version: '21' 
 
     - name: Install Frontend Dependencies
-      working-directory: Fortune/Frontend
+      working-directory: Frontend
       run: npm ci
 
     # Add frontend build and test commands here once package.json is available
