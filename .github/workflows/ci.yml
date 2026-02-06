@@ -1,0 +1,52 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  backend-ci:
+    name: Backend CI
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21' 
+        
+
+    - name: Build and Test Backend
+      working-directory: Fortune
+      run: ./mvnw clean install
+
+  frontend-ci:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '21' 
+
+    - name: Install Frontend Dependencies
+      working-directory: Fortune/Frontend
+      run: npm ci
+
+    # Add frontend build and test commands here once package.json is available
+    # - name: Build Frontend
+    #   working-directory: Fortune/Frontend
+    #   run: npm run build
+    # - name: Test Frontend
+    #   working-directory: Fortune/Frontend
+    #   run: npm test
